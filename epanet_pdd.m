@@ -143,7 +143,11 @@ classdef epanet_pdd < handle
             NodeY = obj.NodesInfo.BinNodeCoordinates{2}(NodeIndex);
             NodeBaseDemand = obj.NodesInfo.BinNodeJunctionsBaseDemands(NodeIndex);
             NodeElevation = obj.NodesInfo.BinNodeJunctionElevation(NodeIndex);
-            K_tcv = (obj.G*pi^2*obj.ServiceHead*obj.Diameter_arbitrary^4)*(10^-6)/(8*NodeBaseDemand^2); 
+            if NodeBaseDemand == 0
+                K_tcv = 0;
+            else
+                K_tcv = (obj.G*pi^2*obj.ServiceHead*obj.Diameter_arbitrary^4)*(10^-6)/(8*NodeBaseDemand^2);
+            end
             % bug: only account for LPS unit and single period simulations
             NodeID = char(NodeID);
             % information for DummyNodeA
