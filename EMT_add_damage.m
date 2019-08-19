@@ -5,7 +5,11 @@ classdef EMT_add_damage < handle
     % d = EMT_add_damage('net03.inp');
     % d.add_info({'3';'4'},[0.2,0.4,0.4;0.5,0.5,0],{'L','B';'B','N'},[100,0;0,0])
     % d.add2net;
-    % d.
+    % d.saveInpFile('net03-1.inp')
+    % d.solveH
+    % d.preReport('net03-1');
+    % d.closeNetwork;
+    % d.delete
     
     properties
         Epanet
