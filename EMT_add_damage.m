@@ -197,10 +197,10 @@ classdef EMT_add_damage < handle
         DiameterDefault = 99999; % mm
         RoughnessCoeff_Break = 140;
         RoughnessCoeff_Leak = 1e6;
-        Postfix_leak = 'L';
-        Postfix_break = 'B';
-        Prefix_R1 = 'R1';
-        Prefix_R2 = 'R2'; 
+        Postfix_leak = '-L';
+        Postfix_break = '-B';
+        Prefix_R1 = 'R1-';
+        Prefix_R2 = 'R2-'; 
         Prefix_N1 = 'N1-'
         Prefix_N2 = 'N2-'
         Prefix_P1 = 'P1-'
@@ -226,7 +226,7 @@ classdef EMT_add_damage < handle
         end
         function preReport(obj,reportName)
             obj.Epanet.setReportFormatReset
-            obj.Epanet.setReport(['FILE Report:',reportName,'.txt']);
+            obj.Epanet.setReport(['FILE  Report-',reportName,'.txt']);
             obj.Epanet.setReport('NODES ALL');
             obj.Epanet.setReport('LINKS ALL');
             obj.Epanet.writeReport;
