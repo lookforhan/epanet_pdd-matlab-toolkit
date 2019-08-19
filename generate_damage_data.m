@@ -12,7 +12,7 @@ pipe_damage_data{1,5}=zeros(link_num,1); %破坏类型，1渗漏，2断开
 pipe_damage_data{1,6}=zeros(link_num,1); %破坏点处渗漏面积，m^2
 for i=1:link_num
     judge_interval=[0 0.2*Pf(i) Pf(i) 1];
-    mid_a=rand_P(j,i)>=judge_interval;
+    mid_a=rand_P(i,1)>judge_interval;
     mid_b=sum(mid_a);
     switch mid_b
         case 1 %断开
