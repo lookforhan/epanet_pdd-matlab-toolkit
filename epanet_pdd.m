@@ -122,9 +122,9 @@ classdef epanet_pdd < handle
         function createAllNodePDD(obj,InpFile)
             JunctionCount = obj.NodesInfo.BinNodeJunctionCount;
             for i = 1:JunctionCount
-                obj.Nodes(i) = i;
-                [obj.DummyNodeAs(i),obj.DummyNodeBs(i),obj.Reservoirs(i),...
-                    obj.FCVs(i),obj.TCVs(i),obj.CVs(i)] = obj.addPDDElements(i);
+%                 obj.Nodes(i) = i;
+                [obj.Nodes{i},obj.DummyNodeAs{i},obj.DummyNodeBs{i},obj.Reservoirs{i},...
+                    obj.FCVs{i},obj.TCVs{i},obj.CVs{i}] = obj.addPDDElements(i);
             end
             obj.saveInp(InpFile);
         end
@@ -134,8 +134,8 @@ classdef epanet_pdd < handle
             obj.NodesInfo = obj.Epanet.getBinNodesInfo;
             obj.LinksInfo = obj.Epanet.getBinLinksInfo;
         end
-        function [NodeA_index,NodeB_index,R_index,...
-                FCV_index,TCV_index,CV_index] = addPDDElements(obj,NodeIndex,NodeID)
+        function [Node_id,NodeA_id,NodeB_id,NodeR_id,...
+                FCV_id,TCV_id,CV_id] = addPDDElements(obj,NodeIndex,NodeID)
             % NodeID is the ID of  user junction which is needed to add elements
 %             keyboard
             switch nargin
@@ -235,6 +235,13 @@ classdef epanet_pdd < handle
             obj.Epanet.setLinkRoughnessCoeff(CV_index,newRoughness);   
             % set Junction Base Demand 0
             obj.Epanet.setNodeBaseDemands(NodeIndex,0);
+            Node_id = NodeID;
+            NodeA_id = DummyNodeA.ID;
+            NodeB_id = DummyNodeB.ID;
+            NodeR_id = Reservoir.ID;
+            FCV_id = FCV.ID;
+            TCV_id = TCV.ID;
+            CV_id = CV.ID;
         end
         function saveInp(obj,fileName)
             obj.Epanet.saveInputFile(fileName);
