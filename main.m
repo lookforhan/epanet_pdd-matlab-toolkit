@@ -53,7 +53,7 @@ pipe_id= RRdata.PipeID;
 sobol_P = sobolset(1);
 type = 'random';
 % outdir = pwd;
-outdir = 'C:\Users\dell\Desktop\random\抽样记录';
+outdir = [pwd,'\random'];
 MC_NUM = 100;
 Node_num = numel(Node_id);
 node_pressure_MC = zeros(Node_num,MC_NUM);
@@ -74,47 +74,66 @@ for i = 1:MC_NUM
     [t4_2,damage_pipe_info] = ND_Execut_probabilistic4(pipe_id,damage_data,pipe_damage_num_max,C,mu);% from 'damageNet\'
     damage_pipe_id = damage_pipe_info.Pipe_ID;
     intervalLength = damage_pipe_info.Interval_Length;
-    equalDiameter = damage_pipe_info.Equal_Damage_Diameter_m_/1000;% Unit:mm
+    equalDiameter = damage_pipe_info.Equal_Damage_Diameter_m_*1000;% Unit:mm
     damageType = cell(numel(damage_pipe_info.Damage_Type),1);
     damageType(damage_pipe_info.Damage_Type==1) = {'L'};
     damageType(damage_pipe_info.Damage_Type==2) = {'B'};
     damageType(damage_pipe_info.Damage_Type==0) = {'N'};
-MC_out_inp = [outdir,'\damage',type,num2str(i),'.inp'];
-MC_out_rpt = [outdir,'\damage',type,num2str(i),'.txt'];
-t  = EMT_add_damage(output_net_pdd_name);
-% t.add_info({'3';'4'},[0.2,0.4,0.4;0.5,0.5,0],{'L','B';'B','N'},[100,0;0,0])
-t.add_info(damage_pipe_id,intervalLength,damageType,equalDiameter);
-t.add2net;
-t.saveInpFile(MC_out_inp)
-% t.solveH
-% Node_p_index = t.Epanet.getNodeIndex(Node_id);
-% Node_d_index = t.Epanet.getNodeIndex(Node_R_id);
-% node_pressure_MC(:,i) = t.Epanet.getNodePressure(Node_p_index)';
-% node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
-% T_pressure_i = table(node_pressure_MC(:,i),'VariableNames',{['MC',num2str(i),'pressure']});
-% T_demand_i = table(node_actualDemand_MC(:,i),'VariableNames',{['MC',num2str(i),'demand']});
-% T_demand =  horzcat(T_demand,T_demand_i);% 合并
-% T_pressure =  horzcat(T_pressure,T_pressure_i); % 合并
-% t.preReport(MC_out_rpt);
-% t.closeNetwork;
-t.delete
-VariableName{i} = ['MC_',num2str(i)];
+    MC_out_inp = [outdir,'\damage',type,num2str(i),'.inp'];
+    
+    t  = EMT_add_damage(output_net_pdd_name);
+    % t.add_info({'3';'4'},[0.2,0.4,0.4;0.5,0.5,0],{'L','B';'B','N'},[100,0;0,0])
+    t.add_info(damage_pipe_id,intervalLength,damageType,equalDiameter);
+    t.add2net;
+    t.saveInpFile(MC_out_inp)
+    % t.solveH
+    % Node_p_index = t.Epanet.getNodeIndex(Node_id);
+    % Node_d_index = t.Epanet.getNodeIndex(Node_R_id);
+    % node_pressure_MC(:,i) = t.Epanet.getNodePressure(Node_p_index)';
+    % node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
+    % T_pressure_i = table(node_pressure_MC(:,i),'VariableNames',{['MC',num2str(i),'pressure']});
+    % T_demand_i = table(node_actualDemand_MC(:,i),'VariableNames',{['MC',num2str(i),'demand']});
+    % T_demand =  horzcat(T_demand,T_demand_i);% 合并
+    % T_pressure =  horzcat(T_pressure,T_pressure_i); % 合并
+    % t.preReport(MC_out_rpt);
+    % t.closeNetwork;
+    t.delete
+    VariableName{i} = ['MC_',num2str(i)];
 end
 % 时间已过 343.055553 秒。平均3.43s一次模拟，包括：生成破坏，水力模拟，加载动态连接库，卸载动态链接库/
 % 时间已过 331.519547 秒。平均3.32s一次模拟，不包括水力模拟。
 % waitmsg.delete
 toc;
-% sum(T_demand)
-% T_demand_MC = array2table(node_actualDemand_MC,'VariableNames',VariableName);
-% T_pressure_MC = array2table(node_pressure_MC,'VariableNames',VariableName);
-% writetable(T_demand,'demand.txt');
-% writetable(T_pressure,'pressure.txt');
+%%
+for i = 1:MC_NUM
+    MC_out_inp = [outdir,'\damage',type,num2str(i),'.inp'];
+    MC_out_rpt = [outdir,'\report',type,num2str(i),'.txt'];
+    t2  = EMT_add_damage(MC_out_inp);
+    t2.solveH
+    t2.Epanet.setOptionsMaxTrials(100);
+    Node_p_index = t2.Epanet.getNodeIndex(Node_id);
+    Node_d_index = t2.Epanet.getNodeIndex(Node_R_id);
+    node_pressure_MC(:,i) = t2.Epanet.getNodePressure(Node_p_index)';
+    node_actualDemand_MC(:,i) = t2.Epanet.getNodeActualDemand(Node_d_index)';
+%     T_pressure_i = table(node_pressure_MC(:,i),'VariableNames',{['MC',num2str(i),'pressure']});
+%     T_demand_i = table(node_actualDemand_MC(:,i),'VariableNames',{['MC',num2str(i),'demand']});
+%     T_demand =  horzcat(T_demand,T_demand_i);% 合并
+%     T_pressure =  horzcat(T_pressure,T_pressure_i); % 合并
+    t2.preReport(MC_out_rpt);
+    t2.closeNetwork;
+    t2.delete
+end
+toc
+T_demand_MC = array2table(node_actualDemand_MC,'VariableNames',VariableName);
+T_pressure_MC = array2table(node_pressure_MC,'VariableNames',VariableName);
+writetable([T_demand,T_demand_MC],'demand.txt');
+writetable([T_pressure,T_pressure_MC],'pressure.txt');
 % post-analysis
-% SSI_Q = sum(node_actualDemand_MC)./node_actualDemand_sum;
-% SSI_H = mean(node_pressure_MC)./node_pressure_mean; 
-% plot(SSI_Q);
-% figure
-% plot(SSI_H);
+SSI_Q = sum(node_actualDemand_MC)./node_actualDemand_sum;
+SSI_H = mean(node_pressure_MC)./node_pressure_mean;
+p1 = plot(SSI_Q);
+figure
+p2 = plot(SSI_H);
 % toc
 % test
 % t  = EMT_add_damage('damagerandom97.inp');
