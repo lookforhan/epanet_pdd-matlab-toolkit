@@ -1,6 +1,8 @@
 classdef EMT_add_damage < handle
     %EMT_add_damage 此处显示有关此类的摘要
     %   利用 Epanet-Matlab-Tool增加破坏节点
+    %   Note：修改管网模型后直接进行水力模拟，可能会出现错误的计算结果。目前原因不明。
+    %   猜测原因是动态链接库本身的原因。
     % How to run:
     % d = EMT_add_damage('net03.inp');
     % d.add_info({'3';'4'},[0.2,0.4,0.4;0.5,0.5,0],{'L','B';'B','N'},[100,0;0,0])
@@ -176,7 +178,7 @@ classdef EMT_add_damage < handle
                     end
                     toNode{j} = N1_id{j};
                     fromNode{j+1} = N2_id{j};
-                    P1_id{j} = [obj.Prefix_P1,fromNode{j},'-',toNode{j}];
+                    P1_id{j} = [obj.Prefix_P1,fromNode{j},'--',toNode{j}];
                     P1_index(j) = obj.Epanet.addLinkPipe(P1_id{j},fromNode{j},toNode{j});
                     obj.Epanet.setLinkDiameter(P1_index(j),obj.NewIntervalPipe(i).Diameter);
                     obj.Epanet.setLinkLength(P1_index(j),obj.NewIntervalPipe(i).Length(j));
@@ -230,7 +232,7 @@ classdef EMT_add_damage < handle
         end
         function preReport(obj,reportName)
             obj.Epanet.setReportFormatReset
-            obj.Epanet.setReport(['FILE  Report-',reportName,'.txt']);
+            obj.Epanet.setReport(['FILE  ',reportName]);
             obj.Epanet.setReport('NODES ALL');
             obj.Epanet.setReport('LINKS ALL');
             obj.Epanet.writeReport;
