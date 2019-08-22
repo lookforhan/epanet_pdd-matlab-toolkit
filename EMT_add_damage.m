@@ -23,9 +23,15 @@ classdef EMT_add_damage < handle
             %   此处显示详细说明
             obj.Epanet = epanet(inpfile);
         end
-        
+    end
+    methods
         function delete(obj)
-            obj.Epanet.unload;
+            if isempty(obj.Epanet)
+                 try unloadlibrary('epanet2');catch; end
+            else
+                obj.Epanet.unload;
+            end
+           
         end
     end
     methods % add information
