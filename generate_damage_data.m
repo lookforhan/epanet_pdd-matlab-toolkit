@@ -10,6 +10,7 @@ pipe_damage_data{1,3}=zeros(link_num,1); %该管线的破坏次序
 pipe_damage_data{1,4}=zeros(link_num,1); %前后破坏点的长度比例
 pipe_damage_data{1,5}=zeros(link_num,1); %破坏类型，1渗漏，2断开
 pipe_damage_data{1,6}=zeros(link_num,1); %破坏点处渗漏面积，m^2
+link_D = zeros(link_num,1);% 管道直径mm
 for i=1:link_num
     judge_interval=[0 0.2*Pf(i) Pf(i) 1];
     mid_a=rand_P(i,1)>judge_interval;
