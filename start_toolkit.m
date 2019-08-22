@@ -3,6 +3,11 @@ function start_toolkit()
 %Run this function before calling 'epanet.m' and the Matlab modules.
 %
 % Syntax:  start_toolkit
+%%
+% 
+%%
+% $x^2+e^{\pi i}$
+% 
 %
 % Inputs:
 %    none
@@ -27,7 +32,10 @@ function start_toolkit()
 
 %------------- BEGIN CODE --------------
 addpath(genpath(pwd));
-disp('EPANET-MATLAB Toolkit Paths Loaded.');    
+disp('EPANET_PDD-MATLAB Toolkit Paths Loaded.');
+path('E:\hanzhao\the_study_of_leak_model_in_epanet',path);
+path('E:\hanzhao\a-comparison-of-2-technologies-that-analyze-resilience\lib\damageNet\',path);
+path('E:\hanzhao\PlotPub\lib',path);
 %------------- END OF CODE --------------
 
 
