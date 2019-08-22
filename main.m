@@ -50,10 +50,10 @@ node_actualDemand_sum = sum(node_actualDemand);
 damage_probability = 1-exp(-RRdata.RR.*RRdata.Length_km_);% 计算破坏概率
 link_num = numel(RRdata.PipeID);
 pipe_id= RRdata.PipeID;
-sobol_P = sobolset(1);
-type = 'random';
+
+
 % outdir = pwd;
-outdir = [pwd,'\random'];
+outdir = [pwd,'\randomb'];
 MC_NUM = 100;
 Node_num = numel(Node_id);
 node_pressure_MC = zeros(Node_num,MC_NUM);
@@ -61,12 +61,24 @@ node_actualDemand_MC = zeros(Node_num,MC_NUM);
 VariableName = cell(1,MC_NUM);
 T_pressure = table(node_pressure','VariableNames',{'basePressure'});
 T_demand = table(node_actualDemand','VariableNames',{'baseDemand'});
+type = 'sobol';
+% type = 'sobol';
+switch sum(abs(type))
+    case 641
+        random_X = unifrnd(0,1,[MC_NUM,link_num]);
+    case 543
+        sobol_P = sobolset(link_num);
+sobol_P_random = scramble(sobol_P,'MatousekAffineOwen');
+        random_X = sobol_P_random.net(MC_NUM);
+    otherwise
+        disp([type,'is invalid parameter!']);
+end
 % type = 'sobol';
 % waitmsg = waitbar(i/MC_NUM,['Please wait!','the ',num2str(i),' of ',num2str(MC_NUM),...
 %         'estimated time remaining indicating ',num2str((MC_NUM-i)*3.43),' minutes']);
 for i = 1:MC_NUM
     
-    rand_P = unifrnd(0,1,[link_num,1]);
+    rand_P = random_X(i,:)';
     pipe_damage_data = generate_damage_data(RRdata,rand_P, damage_probability);
     % 2.2 随机生成破坏管道信息
     damage_data= pipe_damage_data;
