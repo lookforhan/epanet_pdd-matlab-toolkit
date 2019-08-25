@@ -2,6 +2,8 @@
 % 1. 随机生成管道破坏；
 % 2. 采用新的PDD方法进行水力模拟
 % 3. 统计所需要及数据
+% % 修改记录
+% 2019-8-25 ： pipe_damage_data改由 generate_damage_random class 生成
 % start_toolkit()
 clear;close all;tic;
 % 1 为为了进行PDD，对输入管网进行改造。新的PDD计算如Paez et al. 2018所描述。
@@ -54,7 +56,7 @@ pipe_id= RRdata.PipeID;
 % outdir = pwd;
 % outdir = 'C:\Users\dell\Desktop\random\抽样记录';
 outdir = [pwd,'\random',];
-MC_NUM = 1000;
+MC_NUM = 10;
 Node_num = numel(Node_id);
 sobol_seed = sobolset(link_num);
 sobol_seed_random = scramble(sobol_seed,'MatousekAffineOwen');
@@ -75,7 +77,11 @@ for i = 1:MC_NUM
         rand_P = rnd_num(i,:)';
 %     n_start = (i-1)*link_num+4;
 %     rand_P = sobol_P(n_start:n_start+link_num-1);
-    pipe_damage_data = generate_damage_data(RRdata,rand_P, damage_probability);
+%     pipe_damage_data = generate_damage_data(RRdata,rand_P, damage_probability); % 修改
+    t_gdd = generate_damage_random(RRdata.PipeID,RRdata.Material,RRdata.Length_km_,RRdata.Diameter_mm_,RRdata.RR,damage_probability);
+    pipe_damage_data = t_gdd.weightedMeanLeakArea(rand_P);
+    t_gdd.delete;
+    % 
     % 2.2 随机生成破坏管道信息
     damage_data= pipe_damage_data;
     mu = 0.62;C = 4427;pipe_damage_num_max=100;% 参数
