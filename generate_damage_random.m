@@ -21,7 +21,8 @@ classdef generate_damage_random < handle
             0.8,0.0,0.1,0.1,0.0;...
             0.6,0.0,0.3,0.1,0.0;...
             0.0,0.0,0.0,0.0,1.0;...
-            1.0,0.0,0.0,0.0,0.0]
+            1.0,0.0,0.0,0.0,0.0];
+        BreakRate = 0.2; % 断开在总破坏的比例
     end
     methods
         function obj = generate_damage_random(inputArg1,inputArg2,...
@@ -60,6 +61,7 @@ classdef generate_damage_random < handle
             pipe_damage_data{1,4}=zeros(link_num,1); %前后破坏点的长度比例
             pipe_damage_data{1,5}=zeros(link_num,1); %破坏类型，1渗漏，2断开
             pipe_damage_data{1,6}=zeros(link_num,1); %破坏点处渗漏面积，m^2
+            pipe_damage_data{1,7}=zeros(link_num,1); %泄漏破坏类型
             link_D = zeros(link_num,1);% 管道直径mm
             for i=1:link_num
                 judge_interval=[0 0.2*Pf(i) Pf(i) 1];
@@ -75,6 +77,7 @@ classdef generate_damage_random < handle
                         pipe_damage_data{1,4}(k,1)=0.5;
                         pipe_damage_data{1,5}(k,1)=2;
                         pipe_damage_data{1,6}(k,1)=0.25*pi*(obj.PipeDiameter(i)/1000)^2;
+                        pipe_damage_data{1,7}(k,1)='N';
                     case 2 %渗漏
                         damage_type2(j,i)=1;
                         k=k+1;
@@ -109,7 +112,23 @@ classdef generate_damage_random < handle
             pipe_damage_data{1,4}=pipe_damage_data{1,4}(1:damage_num,1);
             pipe_damage_data{1,5}=pipe_damage_data{1,5}(1:damage_num,1);
             pipe_damage_data{1,6}=pipe_damage_data{1,6}(1:damage_num,1);
-            
+            damage_num   = sum(pipe_damage_data{1,1}>0);
+            IndexDamage  = pipe_damage_data{1,1}(1:damage_num,1);
+            DamagePipeID = pipe_damage_data{1,2}(1:damage_num,1);
+            IndexOnPipe  = pipe_damage_data{1,3}(1:damage_num,1);
+            LocRateLength= pipe_damage_data{1,4}(1:damage_num,1);
+            DamageType   = pipe_damage_data{1,5}(1:damage_num,1);
+            LeakArea_m2_ = pipe_damage_data{1,6}(1:damage_num,1);
+            LeakType     = pipe_damage_data{1,7}(1:damage_num,1);
+            outputArg1{1,1} = IndexDamage;
+            outputArg1{1,2} = DamagePipeID;
+            outputArg1{1,3} = IndexOnPipe;
+            outputArg1{1,4} = LocRateLength;
+            outputArg1{1,5} =  DamageType;
+            outputArg1{1,6} = LeakArea_m2_;
+            outputArg1{1,7} = LeakType ;
+            pipe_damage_data_table = table(IndexDamage,DamagePipeID,IndexOnPipe,LocRateLength,DamageType,LeakArea_m2_,LeakType);
+            outputArg2 = pipe_damage_data_table ;
         end
     end
 end
