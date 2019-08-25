@@ -177,6 +177,8 @@ classdef EMT_add_damage < handle
                             obj.Epanet.setLinkRoughnessCoeff(C2_index(j),obj.RoughnessCoeff_Break);
                             
                         case 78 % 'N' for Nan
+                            
+                            continue
                         otherwise % someting else
                             disp('something wrong in damageType');
                             keyboard
