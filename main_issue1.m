@@ -56,7 +56,7 @@ pipe_id= RRdata.PipeID;
 % outdir = pwd;
 % outdir = 'C:\Users\dell\Desktop\random\抽样记录';
 outdir = [pwd,'\random',];
-MC_NUM = 10;
+MC_NUM = 1000;
 Node_num = numel(Node_id);
 sobol_seed = sobolset(link_num);
 sobol_seed_random = scramble(sobol_seed,'MatousekAffineOwen');
@@ -79,7 +79,8 @@ for i = 1:MC_NUM
 %     rand_P = sobol_P(n_start:n_start+link_num-1);
 %     pipe_damage_data = generate_damage_data(RRdata,rand_P, damage_probability); % 修改
     t_gdd = generate_damage_random(RRdata.PipeID,RRdata.Material,RRdata.Length_km_,RRdata.Diameter_mm_,RRdata.RR,damage_probability);
-    pipe_damage_data = t_gdd.weightedMeanLeakArea(rand_P);
+%     [pipe_damage_data] = t_gdd.weightedMeanLeakArea(rand_P);
+    [pipe_damage_data] = t_gdd.LeakAreaByType(rand_P);
     t_gdd.delete;
     % 
     % 2.2 随机生成破坏管道信息
@@ -125,7 +126,7 @@ T_pressure = [T_pressure,T_pressure_MC];
 % post-analysis
 SSI_Q = sum(node_actualDemand_MC)./node_actualDemand_sum;
 SSI_H = mean(node_pressure_MC)./node_pressure_mean;
-save([type,'post_data_GWSL_4.mat'],'SSI_Q','SSI_H','T_demand','T_pressure','MC_NUM','type','outdir')
+save([type,'-leakType-','post_data_GWSL_4.mat'],'SSI_Q','SSI_H','T_demand','T_pressure','MC_NUM','type','outdir')
 % plot(SSI_Q);
 % figure
 % plot(SSI_H);
@@ -141,4 +142,4 @@ figure
 f1 = plot(Q_mean);
 figure
 f2 = plot(H_mean);
-figure
+% figure
