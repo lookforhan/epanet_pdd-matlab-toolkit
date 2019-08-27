@@ -1,4 +1,5 @@
 function pipe_damage_data = generate_damage_data(RRdata,rand_P, Pf)
+% 不考虑泄漏类型，泄漏面积按照几种泄漏面积进行加权平均
 link_num = numel(RRdata.PipeID);
 j = 1;k =0;
 damage_type1 = zeros(link_num,1);
