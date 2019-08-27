@@ -51,3 +51,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 *.asv
+pre_data_GWSL_4.mat
+*.inp
+*.txt
