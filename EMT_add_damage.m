@@ -1,8 +1,11 @@
 classdef EMT_add_damage < handle
     %EMT_add_damage 此处显示有关此类的摘要
     %   利用 Epanet-Matlab-Tool增加破坏节点
-    %   Note：修改管网模型后直接进行水力模拟，可能会出现错误的计算结果。目前原因不明。
+    %   Issue 1：修改管网模型后直接进行水力模拟，可能会出现错误的计算结果。目前原因不明。
     %   猜测原因是动态链接库本身的原因。
+    %   Solution 1: 已解决，增加水力求解次数即可。Epanet.setOptionsMaxTrials
+    %   Issue 2: 增加破坏管道的流量，破坏点的压力
+    %   Solution 2: 修改 add_info/add2net方法，输出破坏点 ID
     % How to run:
     % d = EMT_add_damage('net03.inp');
     % d.add_info({'3';'4'},[0.2,0.4,0.4;0.5,0.5,0],{'L','B';'B','N'},[100,0;0,0])
@@ -93,6 +96,7 @@ classdef EMT_add_damage < handle
         ToNodeNameID = []
         NewNode = []
         NewIntervalPipe = []
+        Leak_info = [];
     end
     methods % add to net
         function add2net(obj)
@@ -100,6 +104,7 @@ classdef EMT_add_damage < handle
             % 2R2N2C is used to model break 
             % 1R1N1C is used to model leak
             pipeNumber = numel(obj.PipeNameID);
+            damage_num = 0;
             for i = 1:pipeNumber
                 damageNumber = obj.NewNode(i).number;
                 fromNode = cell(damageNumber+1,1);
@@ -122,6 +127,7 @@ classdef EMT_add_damage < handle
                 C2_index = zeros(damageNumber,1);
                 P1_index = zeros(damageNumber,1);
                 for j = 1:damageNumber
+                    damage_num = damage_num+1;
                     damageTypeCode = sum(abs(obj.NewNode(i).damageType{j}));
                     switch damageTypeCode
                         case 76 % 'L' for leak
@@ -197,7 +203,13 @@ classdef EMT_add_damage < handle
                         obj.Epanet.setLinkDiameter(P1_index(j+1),obj.NewIntervalPipe(i).Diameter);
                         obj.Epanet.setLinkLength(P1_index(j+1),obj.NewIntervalPipe(i).Length(j+1));
                         obj.Epanet.setLinkRoughnessCoeff(P1_index(j+1),obj.NewIntervalPipe(i).RoughnessCoeff);
-                    end  
+                    end
+                    obj.Leak_info(damage_num).PipeID = obj.PipeNameID{i};
+                    obj.Leak_info(damage_num).R1 = R1_id{j};
+                    obj.Leak_info(damage_num).R2 = R2_id{j};
+                    obj.Leak_info(damage_num).N1 = N1_id{j};
+                    obj.Leak_info(damage_num).N2 = N2_id{j};
+                    obj.Leak_info(damage_num).Type = obj.NewNode(i).damageType{j};
                 end
             end
             obj.closePipe;
