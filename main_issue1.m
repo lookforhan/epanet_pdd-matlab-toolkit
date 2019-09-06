@@ -56,7 +56,7 @@ pipe_id= RRdata.PipeID;
 % outdir = pwd;
 % outdir = 'C:\Users\dell\Desktop\random\抽样记录';
 outdir = [pwd,'\random',];
-MC_NUM = 1000;
+MC_NUM = 10;
 Node_num = numel(Node_id);
 sobol_seed = sobolset(link_num);
 sobol_seed_random = scramble(sobol_seed,'MatousekAffineOwen');
@@ -69,7 +69,8 @@ node_actualDemand_MC = zeros(Node_num,MC_NUM);
 VariableName = cell(1,MC_NUM);
 T_pressure = table(node_pressure','VariableNames',{'basePressure'});
 T_demand = table(node_actualDemand','VariableNames',{'baseDemand'});
-
+node_leak_pressure_MC = cell(1,MC_NUM);
+node_leak_actualDemand_MC = cell(1,MC_NUM);
 % waitmsg = waitbar(i/MC_NUM,['Please wait!','the ',num2str(i),' of ',num2str(MC_NUM),...
 %         'estimated time remaining indicating ',num2str((MC_NUM-i)*3.43),' minutes']);
 for i = 1:MC_NUM
@@ -100,13 +101,20 @@ for i = 1:MC_NUM
     % t.add_info({'3';'4'},[0.2,0.4,0.4;0.5,0.5,0],{'L','B';'B','N'},[100,0;0,0])
     t.add_info(damage_pipe_id,intervalLength,damageType,equalDiameter);
     t.add2net;%add2net函数不能和closeNetwork函数同时使用
+    Leak_data_table = struct2table(t.Leak_info);
+    Node_leak_pressure_id = unique(table2cell(Leak_data_table(:,4:5)))';
+    Node_leak_demand_id = unique(table2cell(Leak_data_table(:,2:3)))';
     t.saveInpFile(MC_out_inp)
     t.Epanet.setOptionsMaxTrials(100);
     t.solveH
     Node_p_index = t.Epanet.getNodeIndex(Node_id);
     Node_d_index = t.Epanet.getNodeIndex(Node_R_id);
+    Node_l_p_index = t.Epanet.getNodeIndex(Node_leak_pressure_id);
+    Node_l_d_index = t.Epanet.getNodeIndex(Node_leak_demand_id);
     node_pressure_MC(:,i) = t.Epanet.getNodePressure(Node_p_index)';
     node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
+    node_leak_pressure_MC{i} = t.Epanet.getNodePressure(Node_l_p_index)';
+    node_leak_actualDemand_MC{i} = t.Epanet.getNodePressure(Node_l_d_index)';
     % t.preReport(MC_out_rpt);
     % t.closeNetwork;
     t.delete
@@ -126,7 +134,8 @@ T_pressure = [T_pressure,T_pressure_MC];
 % post-analysis
 SSI_Q = sum(node_actualDemand_MC)./node_actualDemand_sum;
 SSI_H = mean(node_pressure_MC)./node_pressure_mean;
-save([type,'-leakType-','post_data_GWSL_4.mat'],'SSI_Q','SSI_H','T_demand','T_pressure','MC_NUM','type','outdir')
+save([type,'-leakType-','post_data_GWSL_4.mat'],'SSI_Q','SSI_H','T_demand','T_pressure',...
+    'node_leak_pressure_MC','node_leak_actualDemand_MC','MC_NUM','type','outdir');
 % plot(SSI_Q);
 % figure
 % plot(SSI_H);
