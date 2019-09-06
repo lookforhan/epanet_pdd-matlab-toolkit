@@ -114,7 +114,7 @@ for i = 1:MC_NUM
     node_pressure_MC(:,i) = t.Epanet.getNodePressure(Node_p_index)';
     node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
     node_leak_pressure_MC{i} = t.Epanet.getNodePressure(Node_l_p_index)';
-    node_leak_actualDemand_MC{i} = t.Epanet.getNodePressure(Node_l_d_index)';
+    node_leak_actualDemand_MC{i} = t.Epanet.getNodeActualDemand(Node_l_d_index)';
     % t.preReport(MC_out_rpt);
     % t.closeNetwork;
     t.delete
