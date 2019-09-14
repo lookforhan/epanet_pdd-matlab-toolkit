@@ -11,7 +11,7 @@ input_net_name = 'GWSL_4.INP';
 input_rr_file_name = 'GWSL_4_RR.txt';
 output_net_pdd_name = [input_net_name(1:end-4),'_pdd','.inp'];
 % output_net_pdd_name = 'net03.inp';
-%{
+ %{
 % 随机分析之前运行，运行后保存关键变量。
 net = epanet_pdd(input_net_name);
 net.createAllNodePDD(output_net_pdd_name);
@@ -38,7 +38,7 @@ if isnumeric(RRdata.PipeID)
     end
     RRdata.PipeID = cell_char_PipeID;
 end
-id_flag = strcmp(Pipe_id',RRdata.PipeID);
+id_flag = strcmp(Pipe_id(1:78)',RRdata.PipeID);
 if ~all(id_flag)
     disp('There are difference between the Pipe_id from inpfile AND the RRdata.PipeID from RRfile!');
     keyboard
@@ -56,14 +56,19 @@ pipe_id= RRdata.PipeID;
 % outdir = pwd;
 % outdir = 'C:\Users\dell\Desktop\random\抽样记录';
 outdir = [pwd,'\random',];
-MC_NUM = 100;
+MC_NUM = 1000;
 Node_num = numel(Node_id);
 sobol_seed = sobolset(link_num);
 sobol_seed_random = scramble(sobol_seed,'MatousekAffineOwen');
-rnd_num = sobol_seed_random.net(MC_NUM);
+% rnd_num = sobol_seed_random.net(MC_NUM);
 % type = 'sobol';
 type = 'random';
-% rnd_num = unifrnd(0,1,[MC_NUM,link_num]);
+switch sum(abs(type))
+    case 641
+        rnd_num = unifrnd(0,1,[MC_NUM,link_num]);
+    case 543
+        rnd_num = sobol_seed_random.net(MC_NUM);
+end
 node_pressure_MC = zeros(Node_num,MC_NUM);
 node_actualDemand_MC = zeros(Node_num,MC_NUM);
 VariableName = cell(1,MC_NUM);
@@ -77,15 +82,15 @@ Node_leak_demand_id_cell = cell(link_num*20,MC_NUM);
 %         'estimated time remaining indicating ',num2str((MC_NUM-i)*3.43),' minutes']);
 for i = 1:MC_NUM
     
-        rand_P = rnd_num(i,:)';
-%     n_start = (i-1)*link_num+4;
-%     rand_P = sobol_P(n_start:n_start+link_num-1);
-%     pipe_damage_data = generate_damage_data(RRdata,rand_P, damage_probability); % 修改
+    rand_P = rnd_num(i,:)';
+    %     n_start = (i-1)*link_num+4;
+    %     rand_P = sobol_P(n_start:n_start+link_num-1);
+    %     pipe_damage_data = generate_damage_data(RRdata,rand_P, damage_probability); % 修改
     t_gdd = generate_damage_random(RRdata.PipeID,RRdata.Material,RRdata.Length_km_,RRdata.Diameter_mm_,RRdata.RR,damage_probability);
-%     [pipe_damage_data] = t_gdd.weightedMeanLeakArea(rand_P);
+    %     [pipe_damage_data] = t_gdd.weightedMeanLeakArea(rand_P);
     [pipe_damage_data] = t_gdd.LeakAreaByType(rand_P);
     t_gdd.delete;
-    % 
+    %
     % 2.2 随机生成破坏管道信息
     damage_data= pipe_damage_data;
     mu = 0.62;C = 4427;pipe_damage_num_max=100;% 参数
@@ -138,7 +143,7 @@ T_pressure = [T_pressure,T_pressure_MC];
 % post-analysis
 SSI_Q = sum(node_actualDemand_MC)./node_actualDemand_sum;
 SSI_H = mean(node_pressure_MC)./node_pressure_mean;
-save([type,'-leakType-','post_data_GWSL_4.mat'],'SSI_Q','SSI_H','T_demand','T_pressure',...
+save([type,'-leakType-','post_data_',input_net_name(1:end-4),'.mat'],'SSI_Q','SSI_H','T_demand','T_pressure',...
     'node_leak_pressure_MC','node_leak_actualDemand_MC','MC_NUM','type','outdir');
 % plot(SSI_Q);
 % figure
