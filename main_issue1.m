@@ -8,10 +8,10 @@
 clear;close all;tic;
 % 1 为为了进行PDD，对输入管网进行改造。新的PDD计算如Paez et al. 2018所描述。
 input_net_name = 'GWSL_4.INP';
-input_rr_file_name = 'GWSL_4_RR.txt';
+input_rr_file_name = 'GWSL_4_RR_IX.txt';
 output_net_pdd_name = [input_net_name(1:end-4),'_pdd','.inp'];
 % output_net_pdd_name = 'net03.inp';
- %{
+% %{
 % 随机分析之前运行，运行后保存关键变量。
 net = epanet_pdd(input_net_name);
 net.createAllNodePDD(output_net_pdd_name);
@@ -80,6 +80,8 @@ Node_leak_pressure_id_cell = cell(link_num*20,MC_NUM);
 Node_leak_demand_id_cell = cell(link_num*20,MC_NUM);
 % waitmsg = waitbar(i/MC_NUM,['Please wait!','the ',num2str(i),' of ',num2str(MC_NUM),...
 %         'estimated time remaining indicating ',num2str((MC_NUM-i)*3.43),' minutes']);
+NodeReservior_id = {'50','51','52','53'};
+NodeReservior_flow = zeros(4,MC_NUM);
 for i = 1:MC_NUM
     
     rand_P = rnd_num(i,:)';
@@ -114,7 +116,7 @@ for i = 1:MC_NUM
     Node_leak_pressure_id_cell(1:numel(Node_leak_pressure_id),i) = Node_leak_pressure_id';
     Node_leak_demand_id_cell(1:numel(Node_leak_demand_id),i) = Node_leak_demand_id';
     t.saveInpFile(MC_out_inp)
-    t.Epanet.setOptionsMaxTrials(100);
+    t.Epanet.setOptionsMaxTrials(200);
     t.solveH
     Node_p_index = t.Epanet.getNodeIndex(Node_id);
     Node_d_index = t.Epanet.getNodeIndex(Node_R_id);
@@ -124,6 +126,8 @@ for i = 1:MC_NUM
     node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
     node_leak_pressure_MC(1:numel(Node_l_p_index),i) = t.Epanet.getNodePressure(Node_l_p_index)';
     node_leak_actualDemand_MC(1:numel(Node_l_d_index),i) = t.Epanet.getNodeActualDemand(Node_l_d_index)';
+    NodeReservior_index = t.Epanet.getNodeIndex(NodeReservior_id);
+    NodeReservior_flow(:,i) = t.Epanet.getNodeActualDemand(NodeReservior_index)';
     % t.preReport(MC_out_rpt);
     % t.closeNetwork;
     t.delete
