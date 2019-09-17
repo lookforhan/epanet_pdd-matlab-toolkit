@@ -7,7 +7,7 @@
 % start_toolkit()
 clear;close all;tic;
 % 1 为为了进行PDD，对输入管网进行改造。新的PDD计算如Paez et al. 2018所描述。
-input_net_name = 'GWSL_4.INP';
+input_net_name = 'GWSL_pump2.inp';
 input_rr_file_name = 'GWSL_4_RR_IX.txt';
 output_net_pdd_name = [input_net_name(1:end-4),'_pdd','.inp'];
 % output_net_pdd_name = 'net03.inp';
@@ -148,7 +148,7 @@ T_pressure = [T_pressure,T_pressure_MC];
 SSI_Q = sum(node_actualDemand_MC)./node_actualDemand_sum;
 SSI_H = mean(node_pressure_MC)./node_pressure_mean;
 save([type,'-leakType-','post_data_',input_net_name(1:end-4),'.mat'],'SSI_Q','SSI_H','T_demand','T_pressure',...
-    'node_leak_pressure_MC','node_leak_actualDemand_MC','MC_NUM','type','outdir');
+    'node_leak_pressure_MC','node_leak_actualDemand_MC','MC_NUM','NodeReservior_flow','type','outdir');
 % plot(SSI_Q);
 % figure
 % plot(SSI_H);
