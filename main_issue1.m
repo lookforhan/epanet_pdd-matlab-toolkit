@@ -7,7 +7,7 @@
 % start_toolkit()
 clear;close all;tic;
 % 1 为为了进行PDD，对输入管网进行改造。新的PDD计算如Paez et al. 2018所描述。
-input_net_name = 'GWSL_pump2.inp';
+input_net_name = 'GWSL_pump1.inp';
 input_rr_file_name = 'GWSL_4_RR_IX.txt';
 output_net_pdd_name = [input_net_name(1:end-4),'_pdd','.inp'];
 % output_net_pdd_name = 'net03.inp';
@@ -49,14 +49,16 @@ save('pre_data_GWSL_4.mat','RRdata','node_pressure','node_actualDemand','Node_R_
 load('pre_data_GWSL_4.mat');
 node_pressure_mean = mean(node_pressure);
 node_actualDemand_sum = sum(node_actualDemand);
-damage_probability = 1-exp(-RRdata.RR.*RRdata.Length_km_);% 计算破坏概率
+break_probability = 1-exp(-RRdata.RR.*RRdata.Length_km_);% 计算破坏概率
+leak_probability = 5*break_probability;
+damage_probability = break_probability+leak_probability;
 link_num = numel(RRdata.PipeID);
 pipe_id= RRdata.PipeID;
 
 % outdir = pwd;
 % outdir = 'C:\Users\dell\Desktop\random\抽样记录';
 outdir = [pwd,'\random',];
-MC_NUM = 1000;
+MC_NUM = 5000;
 Node_num = numel(Node_id);
 sobol_seed = sobolset(link_num);
 sobol_seed_random = scramble(sobol_seed,'MatousekAffineOwen');
@@ -83,12 +85,12 @@ Node_leak_demand_id_cell = cell(link_num*20,MC_NUM);
 NodeReservior_id = {'50','51','52','53'};
 NodeReservior_flow = zeros(4,MC_NUM);
 for i = 1:MC_NUM
-    
+    disp(['MC:',num2str(i)]);
     rand_P = rnd_num(i,:)';
     %     n_start = (i-1)*link_num+4;
     %     rand_P = sobol_P(n_start:n_start+link_num-1);
     %     pipe_damage_data = generate_damage_data(RRdata,rand_P, damage_probability); % 修改
-    t_gdd = generate_damage_random(RRdata.PipeID,RRdata.Material,RRdata.Length_km_,RRdata.Diameter_mm_,RRdata.RR,damage_probability);
+    t_gdd = generate_damage_random(RRdata.PipeID,RRdata.Material,RRdata.Length_km_,RRdata.Diameter_mm_,RRdata.RR,break_probability,leak_probability);
     %     [pipe_damage_data] = t_gdd.weightedMeanLeakArea(rand_P);
     [pipe_damage_data] = t_gdd.LeakAreaByType(rand_P);
     t_gdd.delete;
@@ -115,7 +117,7 @@ for i = 1:MC_NUM
     Node_leak_demand_id = unique(table2cell(Leak_data_table(:,2:3)))';
     Node_leak_pressure_id_cell(1:numel(Node_leak_pressure_id),i) = Node_leak_pressure_id';
     Node_leak_demand_id_cell(1:numel(Node_leak_demand_id),i) = Node_leak_demand_id';
-    t.saveInpFile(MC_out_inp)
+%     t.saveInpFile(MC_out_inp)
     t.Epanet.setOptionsMaxTrials(200);
     t.solveH
     Node_p_index = t.Epanet.getNodeIndex(Node_id);
