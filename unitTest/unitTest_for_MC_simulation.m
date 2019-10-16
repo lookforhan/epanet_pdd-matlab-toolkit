@@ -36,5 +36,15 @@ MC = MC_simulation(input_rr_file_name,input_net_name);
 MC.pre_analysis
 MC.random_value
 MC.generate_damage_probability
+MC.generate_damage_info
 MC.analysis
+MC.delete
+% test for post analysis (pass)
+MC = MC_simulation(input_rr_file_name,input_net_name);
+MC.pre_analysis
+MC.random_value
+MC.generate_damage_probability
+MC.generate_damage_info
+MC.analysis
+MC.post_analysis
 MC.delete
