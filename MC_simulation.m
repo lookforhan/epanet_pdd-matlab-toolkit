@@ -94,7 +94,7 @@ classdef MC_simulation < handle
         function analysis(obj)
             MC_NUM = obj.MC_Nmax;
             Node_num = numel(obj.Net_basic_information.Node_id);
-            Link_num = numel(obj.RR_data.PipeID);
+            Link_num = numel(obj.Net_basic_information.Pipe_id);
             node_pressure_MC = zeros(Node_num,MC_NUM);
             node_actualDemand_MC = zeros(Node_num,MC_NUM);
             VariableName = cell(1,MC_NUM);
@@ -102,8 +102,8 @@ classdef MC_simulation < handle
             node_leak_actualDemand_MC = zeros(Link_num*20,MC_NUM);
             Node_leak_pressure_id_cell = cell(Link_num*20,MC_NUM);
             Node_leak_demand_id_cell = cell(Link_num*20,MC_NUM);
-            OriginalReservior_id = obj.Net_basic_information.OriginalReservior_id;
-            Reservior_num = numel(OriginalReservior_id);
+            OriginalReservoir_id = obj.Net_basic_information.OriginalReservoir_id;
+            Reservior_num = numel(OriginalReservoir_id);
             Reservior_flow = zeros(Reservior_num,MC_NUM);
             
             Node_id = obj.Net_basic_information.Node_id;
@@ -148,7 +148,7 @@ classdef MC_simulation < handle
                 node_leak_pressure_MC(all(node_leak_pressure_MC==0,2),:)=[];
                 node_leak_actualDemand_MC(1:numel(Node_l_d_index),i) = t.Epanet.getNodeActualDemand(Node_l_d_index)';
                 node_leak_actualDemand_MC(all(node_leak_actualDemand_MC==0,2),:)=[];
-                Reservior_index = t.Epanet.getNodeIndex(OriginalReservior_id);
+                Reservior_index = t.Epanet.getNodeIndex(OriginalReservoir_id);
                 Reservior_flow(:,i) = t.Epanet.getNodeActualDemand(Reservior_index)';
                 % t.preReport(MC_out_rpt);
                 % t.closeNetwork;
@@ -170,12 +170,19 @@ classdef MC_simulation < handle
         function post_analysis(obj)
             % data process
             % Normalized output
+            
+            Node_id = cell2table(obj.Net_basic_information.Node_id','VariableNames',{'NodeID'});
+            Reservoir_id = cell2table(obj.Net_basic_information.OriginalReservoir_id','VariableNames',{'ReservoirID'});
+            BasicDemand = array2table(obj.Net_basic_information.Node_actualDemand','VariableNames',{'BasicDemand'});
+            BasicPressure = array2table(obj.Net_basic_information.Node_pressure','VariableNames',{'BasicPressure'});
+            BasicSupply = array2table(obj.Net_basic_information.OriginalReservoir_supply','VariableNames',{'BasicSupply'});
             disp('pressure (m) at each node')
-            obj.Node_supply.Pressure
+            
+            [Node_id,BasicPressure,obj.Node_supply.Pressure]
             disp('actural water supply (LPS) at each node')
-            obj.Node_supply.Demand
+            [Node_id,BasicDemand,obj.Node_supply.Demand]
             disp('actural water supply (LPS) at each ')
-            obj.Reservior_output
+            [Reservoir_id,BasicSupply,obj.Reservior_output]
             disp('pressure (m) at each artificial node')
             obj.Leak_flow.Pressure
             disp('actural water supply (LPS) at each artificial node')
@@ -189,16 +196,18 @@ classdef MC_simulation < handle
             input_net_name = obj.Net_file;
             output_net_pdd_name = obj.Net_pdd_file;
             net = epanet_pdd(input_net_name);
-            Original_Reservior_id = net.Epanet.NodeReservoirNameID;
+            Original_Reservoir_id = net.Epanet.NodeReservoirNameID;
             net.createAllNodePDD(output_net_pdd_name);
             Node_id = net.Nodes;
             Node_R_id = net.Reservoirs;
             Node_index = net.Epanet.getNodeIndex(Node_id);
             Node_R_index = net.Epanet.getNodeIndex(Node_R_id);
+            Original_Reservoir_index = net.Epanet.getNodeIndex(Original_Reservoir_id);
             Pipe_id = net.LinksInfo.BinLinkPipeNameID;
             net.Epanet.solveCompleteHydraulics;
             node_pressure = net.Epanet.getNodePressure(Node_index);
             node_actualDemand = net.Epanet.getNodeActualDemand(Node_R_index);
+            Original_Reservoir_supply = net.Epanet.getNodeActualDemand(Original_Reservoir_index);
             net.Epanet.closeNetwork;
             net.delete;
             %             node_pressure_mean = mean(node_pressure);
@@ -208,7 +217,8 @@ classdef MC_simulation < handle
             obj.Net_basic_information.Pipe_id = Pipe_id;
             obj.Net_basic_information.Node_pressure = node_pressure;
             obj.Net_basic_information.Node_actualDemand = node_actualDemand;
-            obj.Net_basic_information.OriginalReservior_id = Original_Reservior_id;
+            obj.Net_basic_information.OriginalReservoir_id = Original_Reservoir_id;
+            obj.Net_basic_information.OriginalReservoir_supply = Original_Reservoir_supply;
         end
         function input_RR(obj)
             RRdata = readtable(obj.RR_file);
@@ -237,9 +247,10 @@ classdef MC_simulation < handle
         end
         function generate_damage_probability(obj)
             RRdata = obj.RR_data;
-            break_probability = 1-exp(-RRdata.RR.*RRdata.Length_km_);% ¼ÆËãÆÆ»µ¸ÅÂÊ
-            leak_probability = 5*break_probability;
-            damage_probability = break_probability+leak_probability;
+            damage_probability = 1-exp(-RRdata.RR.*RRdata.Length_km_);% ¼ÆËãÆÆ»µ¸ÅÂÊ
+            break_probability = 0.2*damage_probability;
+            leak_probability = 0.8*damage_probability;
+%             damage_probability = break_probability+leak_probability;
             obj.PipeProbability.Break = break_probability;
             obj.PipeProbability.Leak = leak_probability;
             obj.PipeProbability.Damage = damage_probability;
