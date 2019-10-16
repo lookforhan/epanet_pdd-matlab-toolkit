@@ -11,6 +11,8 @@ classdef generate_damage_random < handle
         PipeDiameter
         PipeRR
         Pipe_damage_probability
+        Pipe_break_probability
+        Pipe_leak_probability
     end
     properties (Dependent)
         Leak_type_cdf_table
@@ -26,7 +28,7 @@ classdef generate_damage_random < handle
     end
     methods
         function obj = generate_damage_random(inputArg1,inputArg2,...
-                inputArg3,inputArg4,inputArg5,inputArg6)
+                inputArg3,inputArg4,inputArg5,inputArg6,inputArg7)
             %generate_damage_random 构造此类的实例
             %   此处显示详细说明
             obj.PipeID = inputArg1;
@@ -34,7 +36,9 @@ classdef generate_damage_random < handle
             obj.PipeLength = inputArg3;
             obj.PipeDiameter = inputArg4;
             obj.PipeRR = inputArg5;
-            obj.Pipe_damage_probability = inputArg6; 
+            obj.Pipe_break_probability = inputArg6; 
+            obj.Pipe_leak_probability = inputArg7;
+            obj.Pipe_damage_probability = inputArg6+inputArg7;
         end
     end
     methods
@@ -51,6 +55,7 @@ classdef generate_damage_random < handle
 
             link_num = numel(obj.PipeID);
             Pf = obj.Pipe_damage_probability;
+            Pf_break = obj.Pipe_break_probability;
             j = 1;k =0;
             damage_type1 = zeros(link_num,1);
             damage_type2 = zeros(link_num,1);
@@ -64,7 +69,7 @@ classdef generate_damage_random < handle
             pipe_damage_data{1,7}=zeros(link_num,1); %泄漏破坏类型
             link_D = zeros(link_num,1);% 管道直径mm
             for i=1:link_num
-                judge_interval=[0 0.2*Pf(i) Pf(i) 1];
+                judge_interval=[0, Pf_break, Pf(i), 1];
                 mid_a=rand_P(i,1)>judge_interval;
                 mid_b=sum(mid_a);
                 switch mid_b
@@ -134,6 +139,7 @@ classdef generate_damage_random < handle
             leak_type_cdf = table2array(obj.Leak_type_cdf_table);
             link_num = numel(obj.PipeID);
             Pf = obj.Pipe_damage_probability;
+            Pf_leak = obj.Pipe_damage_probability;
             j = 1;k =0;
 %             damage_type1 = zeros(link_num,1);
 %             damage_type2 = zeros(link_num,1);
@@ -170,7 +176,7 @@ classdef generate_damage_random < handle
                         keyboard
                 end
                 link_D = obj.PipeDiameter(i)/1000;
-                judge_interval=[0,(1-obj.BreakRate)*Pf(i)*judge_leak_type,Pf(i),1];
+                judge_interval=[0,Pf_leak(i)*judge_leak_type,Pf(i),1];
                 mid_a=rand_P(i,1)>judge_interval;
                 mid_b=sum(mid_a);
                 switch mid_b
