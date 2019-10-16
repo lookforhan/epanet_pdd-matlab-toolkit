@@ -16,6 +16,7 @@ classdef MC_simulation < handle
         Node_supply
         Reservior_output
         Leak_flow
+        Damage_info % damage information
     end
     properties % data used in process
         Net_pdd_file = 'PDDNet.inp';
@@ -38,7 +39,8 @@ classdef MC_simulation < handle
             end
         end
         function delete(obj)
-%             close(obj.Net_pdd_file); % close file created by the CLASS
+            % close file-built in analysis process
+            % close(obj.Net_pdd_file); % close file created by the CLASS
 
             
             if isfile(obj.Net_pdd_file)
@@ -64,26 +66,11 @@ classdef MC_simulation < handle
             obj.input_RR;
             obj.pre_damage_analysis;
         end
-        function analysis(obj)
-            MC_NUM = obj.MC_Nmax;
-            Node_num = numel(obj.Net_basic_information.Node_id);
-            Link_num = numel(obj.RR_data.PipeID);
-            node_pressure_MC = zeros(Node_num,MC_NUM);
-            node_actualDemand_MC = zeros(Node_num,MC_NUM);
-            VariableName = cell(1,MC_NUM);
-            node_leak_pressure_MC = zeros(Link_num*20,MC_NUM);
-            node_leak_actualDemand_MC = zeros(Link_num*20,MC_NUM);
-            Node_leak_pressure_id_cell = cell(Link_num*20,MC_NUM);
-            Node_leak_demand_id_cell = cell(Link_num*20,MC_NUM);
-            OriginalReservior_id = obj.Net_basic_information.OriginalReservior_id;
-            Reservior_num = numel(OriginalReservior_id);
-            Reservior_flow = zeros(Reservior_num,MC_NUM);
-            
+        function generate_damage_info(obj)
+            MC_NUM = obj.MC_Nmax; 
             break_probability = obj.PipeProbability.Break;
             leak_probability = obj.PipeProbability.Leak;
-            
-            Node_id = obj.Net_basic_information.Node_id;
-            Node_R_id = obj.Net_basic_information.NodeReservoir_id;
+            damage_information = cell(MC_NUM,1);
             for i = 1:MC_NUM
                 disp(['MC number:',num2str(i),'/',num2str(MC_NUM)])
                 rand_value = obj.Random_value(i,:)';
@@ -100,6 +87,35 @@ classdef MC_simulation < handle
                 damage_data = pipe_damage_data;
                 mu = 0.62;C = 4427; pipe_damage_num_max = 100;pipe_id = obj.RR_data.PipeID;
                 [~,damage_pipe_info] = ND_Execut_probabilistic4(pipe_id,damage_data,pipe_damage_num_max,C,mu);% from 'damageNet\'
+                damage_information{i,1} = damage_pipe_info;
+            end
+            obj.Damage_info = damage_information;
+        end
+        function analysis(obj)
+            MC_NUM = obj.MC_Nmax;
+            Node_num = numel(obj.Net_basic_information.Node_id);
+            Link_num = numel(obj.RR_data.PipeID);
+            node_pressure_MC = zeros(Node_num,MC_NUM);
+            node_actualDemand_MC = zeros(Node_num,MC_NUM);
+            VariableName = cell(1,MC_NUM);
+            node_leak_pressure_MC = zeros(Link_num*20,MC_NUM);
+            node_leak_actualDemand_MC = zeros(Link_num*20,MC_NUM);
+            Node_leak_pressure_id_cell = cell(Link_num*20,MC_NUM);
+            Node_leak_demand_id_cell = cell(Link_num*20,MC_NUM);
+            OriginalReservior_id = obj.Net_basic_information.OriginalReservior_id;
+            Reservior_num = numel(OriginalReservior_id);
+            Reservior_flow = zeros(Reservior_num,MC_NUM);
+            
+            Node_id = obj.Net_basic_information.Node_id;
+            Node_R_id = obj.Net_basic_information.NodeReservoir_id;
+            
+            % damage information
+            
+            for i = 1:MC_NUM
+                disp(['MC number:',num2str(i),'/',num2str(MC_NUM)])
+                
+                damage_pipe_info = obj.Damage_info{i};% read damage inforamtion 
+                
                 damage_pipe_id = damage_pipe_info.Pipe_ID;
                 intervalLength = damage_pipe_info.Interval_Length;
                 equalDiameter = damage_pipe_info.Equal_Damage_Diameter_m_*1000;% Unit:mm
@@ -129,7 +145,9 @@ classdef MC_simulation < handle
                 node_pressure_MC(:,i) = t.Epanet.getNodePressure(Node_p_index)';
                 node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
                 node_leak_pressure_MC(1:numel(Node_l_p_index),i) = t.Epanet.getNodePressure(Node_l_p_index)';
+                node_leak_pressure_MC(all(node_leak_pressure_MC==0,2),:)=[];
                 node_leak_actualDemand_MC(1:numel(Node_l_d_index),i) = t.Epanet.getNodeActualDemand(Node_l_d_index)';
+                node_leak_actualDemand_MC(all(node_leak_actualDemand_MC==0,2),:)=[];
                 Reservior_index = t.Epanet.getNodeIndex(OriginalReservior_id);
                 Reservior_flow(:,i) = t.Epanet.getNodeActualDemand(Reservior_index)';
                 % t.preReport(MC_out_rpt);
@@ -146,11 +164,24 @@ classdef MC_simulation < handle
             obj.Reservior_output = array2table(Reservior_flow,'VariableNames',VariableName);
             obj.Leak_flow.Demand = array2table(node_leak_actualDemand_MC,'VariableNames',VariableName);
             obj.Leak_flow.Pressure = array2table(node_leak_pressure_MC,'VariableNames',VariableName);
+            
+            
         end
         function post_analysis(obj)
             % data process
             % Normalized output
-            % close file-built in analysis process
+            disp('pressure (m) at each node')
+            obj.Node_supply.Pressure
+            disp('actural water supply (LPS) at each node')
+            obj.Node_supply.Demand
+            disp('actural water supply (LPS) at each ')
+            obj.Reservior_output
+            disp('pressure (m) at each artificial node')
+            obj.Leak_flow.Pressure
+            disp('actural water supply (LPS) at each artificial node')
+            obj.Leak_flow.Demand
+            disp('damage information')
+            obj.Damage_info{1}
         end
     end
     methods %
@@ -212,8 +243,6 @@ classdef MC_simulation < handle
             obj.PipeProbability.Break = break_probability;
             obj.PipeProbability.Leak = leak_probability;
             obj.PipeProbability.Damage = damage_probability;
-    
-
         end
     end
 end
