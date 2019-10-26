@@ -11,6 +11,7 @@ classdef MC_simulation < handle
         Random_method = 'random';
         Random_value
         MC_Nmax = 50;
+        ChosenScenarioIndex = 1;
     end
     properties % output
         Node_supply
@@ -164,6 +165,7 @@ classdef MC_simulation < handle
             obj.Reservior_output = array2table(Reservior_flow,'VariableNames',VariableName);
             obj.Leak_flow.Demand = array2table(node_leak_actualDemand_MC,'VariableNames',VariableName);
             obj.Leak_flow.Pressure = array2table(node_leak_pressure_MC,'VariableNames',VariableName);
+            obj.Leak_flow.ID = cell2table(Node_leak_pressure_id_cell,'VariableNames',VariableName);
             
             
         end
@@ -254,6 +256,24 @@ classdef MC_simulation < handle
             obj.PipeProbability.Break = break_probability;
             obj.PipeProbability.Leak = leak_probability;
             obj.PipeProbability.Damage = damage_probability;
+        end
+        function export_inp(obj,filename)
+            damage_pipe_info = obj.Damage_info{obj.ChosenScenarioIndex};
+            damage_pipe_id = damage_pipe_info.Pipe_ID;
+                intervalLength = damage_pipe_info.Interval_Length;
+                equalDiameter = damage_pipe_info.Equal_Damage_Diameter_m_*1000;% Unit:mm
+                damageType = cell(numel(damage_pipe_info.Damage_Type),1);
+                damageType(damage_pipe_info.Damage_Type==1) = {'L'};
+                damageType(damage_pipe_info.Damage_Type==2) = {'B'};
+                damageType(damage_pipe_info.Damage_Type==0) = {'N'};
+%                 outdir = pwd;
+%                 type = obj.Random_method;
+                output_net_pdd_name = obj.Net_pdd_file;
+%                 MC_out_inp = [outdir,'\damage',type,num2str(i),'.inp'];
+                t  = EMT_add_damage(output_net_pdd_name);
+                t.add_info(damage_pipe_id,intervalLength,damageType,equalDiameter);
+                t.add2net;%add2net函数不能和closeNetwork函数同时使用
+                t.Epanet.saveInputFile(filename)
         end
     end
 end
