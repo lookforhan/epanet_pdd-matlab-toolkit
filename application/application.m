@@ -1,11 +1,11 @@
 % application
 % the MC_simulation.m is used to simulate the network model with pump and
-% without pump.
+% with pump.
 input_net_name1 = 'GWSL_pump1.inp';
 input_net_name2 = 'GWSL_4.inp';
 input_rr_file_name = 'GWSL_4_RR_IX.txt';
 MC = MC_simulation(input_rr_file_name,input_net_name1);
-MC.MC_Nmax = 500;
+MC.MC_Nmax = 1000;
 MC.pre_analysis
 MC.random_value
 MC.generate_damage_probability
@@ -18,11 +18,10 @@ WithPump = saveobj(MC);
 save('resultWithPump.mat','WithPump')
 MC.delete
 
-% result analysis
-
+% without pump
 
 MC = MC_simulation(input_rr_file_name,input_net_name2);
-MC.MC_Nmax = 500;
+MC.MC_Nmax = 1000;
 MC.pre_analysis
 MC.Damage_info = DamageScenario;
 MC.analysis
