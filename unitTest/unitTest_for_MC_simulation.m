@@ -58,3 +58,22 @@ MC.Damage_info = DamageScenario;
 MC.analysis
 MC.post_analysis
 MC.delete
+% test for export the chosen damage scenario (pass)
+load('Scenario.mat');
+MC = MC_simulation(input_rr_file_name,input_net_name);
+MC.MC_Nmax = 500;
+MC.ChosenScenarioIndex = 5;
+MC.Damage_info = DamageScenario;
+MC.pre_damage_analysis
+MC.export_inp('MC5_nopump.inp')
+MC.delete
+% test for export the records of the analysis (pass)
+load('Scenario.mat');
+MC = MC_simulation(input_rr_file_name,input_net_name);
+MC.MC_Nmax = 10;
+MC.Damage_info = DamageScenario;
+MC.pre_damage_analysis
+MC.analysis
+MC.post_analysis
+MC.export_records
+MC.delete
