@@ -18,6 +18,7 @@ classdef MC_simulation < handle
         Reservior_output
         Leak_flow
         Damage_info % damage information
+        Records
     end
     properties % data used in process
         Net_pdd_file = 'PDDNet.inp';
@@ -178,19 +179,29 @@ classdef MC_simulation < handle
             BasicDemand = array2table(obj.Net_basic_information.Node_actualDemand','VariableNames',{'BasicDemand'});
             BasicPressure = array2table(obj.Net_basic_information.Node_pressure','VariableNames',{'BasicPressure'});
             BasicSupply = array2table(obj.Net_basic_information.OriginalReservoir_supply','VariableNames',{'BasicSupply'});
-            disp('pressure (m) at each node')
             
-            [Node_id,BasicPressure,obj.Node_supply.Pressure]
+            Node_Pressure_Record = [Node_id,BasicPressure,obj.Node_supply.Pressure];
+            obj.Records.Node.Pressure = Node_Pressure_Record;
+            
+            Node_Demand_Record = [Node_id,BasicDemand,obj.Node_supply.Demand];
+            obj.Records.Node.Flow = Node_Demand_Record;
+            
+            Reservior_Flow_Record = [Reservoir_id,BasicSupply,obj.Reservior_output];
+            obj.Records.Reservior.Flow = Reservior_Flow_Record;
+            disp('pressure (m) at each node')
+            obj.Records.Node.Pressure
             disp('actural water supply (LPS) at each node')
-            [Node_id,BasicDemand,obj.Node_supply.Demand]
+            
+            obj.Records.Node.Flow
             disp('actural water supply (LPS) at each ')
-            [Reservoir_id,BasicSupply,obj.Reservior_output]
+            
+            obj.Records.Reservior.Flow
             disp('pressure (m) at each artificial node')
             obj.Leak_flow.Pressure
             disp('actural water supply (LPS) at each artificial node')
             obj.Leak_flow.Demand
             disp('damage information')
-            obj.Damage_info{1}
+            obj.Leak_flow.ID
         end
     end
     methods %
@@ -274,6 +285,14 @@ classdef MC_simulation < handle
                 t.add_info(damage_pipe_id,intervalLength,damageType,equalDiameter);
                 t.add2net;%add2net函数不能和closeNetwork函数同时使用
                 t.Epanet.saveInputFile(filename)
+        end
+        function export_records(obj)
+            writetable(obj.Records.Node.Pressure,'NodePressure.xls');
+            writetable(obj.Records.Node.Flow,'NodeDemand.xls');
+            writetable(obj.Records.Reservior.Flow,'Reservior.xls');
+            writetable(obj.Leak_flow.Pressure,'LeakNodePressure.xls');
+            writetable(obj.Leak_flow.Demand,'LeakNodeFlow.xls');
+            writetable(obj.Leak_flow.ID,'LeakNodeID.xls');
         end
     end
 end
