@@ -82,7 +82,7 @@ classdef generate_damage_random < handle
                         pipe_damage_data{1,4}(k,1)=0.5;
                         pipe_damage_data{1,5}(k,1)=2;
                         pipe_damage_data{1,6}(k,1)=0.25*pi*(obj.PipeDiameter(i)/1000)^2;
-                        pipe_damage_data{1,7}(k,1)='N';
+                        pipe_damage_data{1,7}(k,1)='B';
                     case 2 %ÉøÂ©
                         damage_type2(j,i)=1;
                         k=k+1;
@@ -139,7 +139,7 @@ classdef generate_damage_random < handle
             leak_type_cdf = table2array(obj.Leak_type_cdf_table);
             link_num = numel(obj.PipeID);
             Pf = obj.Pipe_damage_probability;
-            Pf_leak = obj.Pipe_damage_probability;
+            Pf_leak = obj.Pipe_leak_probability;
             j = 1;k =0;
 %             damage_type1 = zeros(link_num,1);
 %             damage_type2 = zeros(link_num,1);
@@ -186,7 +186,7 @@ classdef generate_damage_random < handle
                         
                         pipe_damage_data{1,5}(k,1)=2;
                         pipe_damage_data{1,6}(k,1)=0.25*pi*link_D^2;
-                        pipe_damage_data{1,7}{k,1}='N';
+                        pipe_damage_data{1,7}{k,1}='B';
                     case 5 %ÉøÂ© LocalTear
                         
                         pipe_damage_data{1,5}(k,1)=1; 
