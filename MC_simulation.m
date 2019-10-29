@@ -10,7 +10,7 @@ classdef MC_simulation < handle
     properties % parameter
         Random_method = 'random';
         Random_value
-        MC_Nmax = 50;
+        MC_Nmax = 1;
         ChosenScenarioIndex = 1;
     end
     properties % output
@@ -147,9 +147,7 @@ classdef MC_simulation < handle
                 node_pressure_MC(:,i) = t.Epanet.getNodePressure(Node_p_index)';
                 node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
                 node_leak_pressure_MC(1:numel(Node_l_p_index),i) = t.Epanet.getNodePressure(Node_l_p_index)';
-                node_leak_pressure_MC(all(node_leak_pressure_MC==0,2),:)=[];
                 node_leak_actualDemand_MC(1:numel(Node_l_d_index),i) = t.Epanet.getNodeActualDemand(Node_l_d_index)';
-                node_leak_actualDemand_MC(all(node_leak_actualDemand_MC==0,2),:)=[];
                 Reservior_index = t.Epanet.getNodeIndex(OriginalReservoir_id);
                 Reservior_flow(:,i) = t.Epanet.getNodeActualDemand(Reservior_index)';
                 % t.preReport(MC_out_rpt);
@@ -164,6 +162,11 @@ classdef MC_simulation < handle
             obj.Node_supply.Pressure = T_pressure_MC;
             obj.Node_supply.Demand = T_demand_MC;
             obj.Reservior_output = array2table(Reservior_flow,'VariableNames',VariableName);
+            idx = cellfun(@(x)~isempty(x),Node_leak_pressure_id_cell);
+            idx2 = all(idx == 0,2);
+            Node_leak_pressure_id_cell(idx2,:) = [];
+            node_leak_actualDemand_MC(idx2,:) = [];
+            node_leak_pressure_MC(idx2,:) = [];
             obj.Leak_flow.Demand = array2table(node_leak_actualDemand_MC,'VariableNames',VariableName);
             obj.Leak_flow.Pressure = array2table(node_leak_pressure_MC,'VariableNames',VariableName);
             obj.Leak_flow.ID = cell2table(Node_leak_pressure_id_cell,'VariableNames',VariableName);
@@ -287,12 +290,12 @@ classdef MC_simulation < handle
                 t.Epanet.saveInputFile(filename)
         end
         function export_records(obj)
-            writetable(obj.Records.Node.Pressure,'NodePressure.xls');
-            writetable(obj.Records.Node.Flow,'NodeDemand.xls');
-            writetable(obj.Records.Reservior.Flow,'Reservior.xls');
-            writetable(obj.Leak_flow.Pressure,'LeakNodePressure.xls');
-            writetable(obj.Leak_flow.Demand,'LeakNodeFlow.xls');
-            writetable(obj.Leak_flow.ID,'LeakNodeID.xls');
+            writetable(obj.Records.Node.Pressure,'NodePressure.xlsx');
+            writetable(obj.Records.Node.Flow,'NodeDemand.xlsx');
+            writetable(obj.Records.Reservior.Flow,'Reservior.xlsx');
+            writetable(obj.Leak_flow.Pressure,'LeakNodePressure.xlsx');
+            writetable(obj.Leak_flow.Demand,'LeakNodeFlow.xlsx');
+            writetable(obj.Leak_flow.ID,'LeakNodeID.xlsx');
         end
     end
 end
