@@ -104,6 +104,8 @@ classdef EMT_add_damage < handle
             % 2R2N2C is used to model break 
             % 1R1N1C is used to model leak
             pipeNumber = numel(obj.PipeNameID);
+            deleteIndex = zeros(pipeNumber,1);
+            PipeNameID_keep = obj.PipeNameID;
             damage_num = 0;
             for i = 1:pipeNumber
                 damageNumber = obj.NewNode(i).number;
@@ -183,7 +185,7 @@ classdef EMT_add_damage < handle
                             obj.Epanet.setLinkRoughnessCoeff(C2_index(j),obj.RoughnessCoeff_Break);
                             
                         case 78 % 'N' for Nan
-                            
+                            deleteIndex(i) = 1;
                             continue
                         otherwise % someting else
                             disp('something wrong in damageType');
@@ -212,7 +214,8 @@ classdef EMT_add_damage < handle
                     obj.Leak_info(damage_num).Type = obj.NewNode(i).damageType{j};
                 end
             end
-            obj.closePipe;
+            PipeNameID_keep(deleteIndex)=[];
+            obj.closePipe(PipeNameID_keep);
         end
     end
     properties % properties for adding to net
@@ -239,9 +242,9 @@ classdef EMT_add_damage < handle
         end
     end
     methods % basic functions
-        function closePipe(obj)
+        function closePipe(obj,closePipeNameID)
             % Close pipes by the pipe name ID;
-            P_index = obj.Epanet.getLinkIndex(obj.PipeNameID);
+            P_index = obj.Epanet.getLinkIndex(closePipeNameID);
             pipeNumber = numel(P_index);
             value = zeros(pipeNumber,1);
             obj.Epanet.setLinkInitialStatus(P_index,value);
