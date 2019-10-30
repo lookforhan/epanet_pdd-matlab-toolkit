@@ -69,7 +69,7 @@ classdef generate_damage_random < handle
             pipe_damage_data{1,7}=cell(link_num,1); %Ğ¹Â©ÆÆ»µÀàĞÍ
             link_D = zeros(link_num,1);% ¹ÜµÀÖ±¾¶mm
             for i=1:link_num
-                judge_interval=[0, Pf_break, Pf(i), 1];
+                judge_interval=[0, Pf_break(i), Pf(i), 1];
                 mid_a=rand_P(i,1)>judge_interval;
                 mid_b=sum(mid_a);
                 switch mid_b
@@ -82,7 +82,7 @@ classdef generate_damage_random < handle
                         pipe_damage_data{1,4}(k,1)=0.5;
                         pipe_damage_data{1,5}(k,1)=2;
                         pipe_damage_data{1,6}(k,1)=0.25*pi*(obj.PipeDiameter(i)/1000)^2;
-                        pipe_damage_data{1,7}(k,1)='B';
+                        pipe_damage_data{1,7}{k,1}='B';
                     case 2 %ÉøÂ©
                         damage_type2(j,i)=1;
                         k=k+1;
@@ -108,6 +108,7 @@ classdef generate_damage_random < handle
                             case 224 % Jointed Concrete; sum(abs('CON'))
                                 pipe_damage_data{1,6}(k,1)=1.0*0.3*pi*10/1000*(link_D(i)/1000);
                         end
+                        pipe_damage_data{1,7}{k,1} = 'L';
                 end
             end
             damage_num=sum(pipe_damage_data{1,1}>0);
