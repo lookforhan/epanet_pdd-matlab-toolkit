@@ -140,7 +140,8 @@ classdef generate_damage_random < handle
             link_num = numel(obj.PipeID);
             Pf = obj.Pipe_damage_probability;
             Pf_leak = obj.Pipe_leak_probability;
-            j = 1;k =0;
+%             j = 1;
+            k =0;% k is count for the damage number
 %             damage_type1 = zeros(link_num,1);
 %             damage_type2 = zeros(link_num,1);
             pipe_damage_data=cell(1,6);% pipe_damage_data,元胞数组,存放6类行数相同的由随机抽样产生的破坏点数据
@@ -224,7 +225,7 @@ classdef generate_damage_random < handle
                         keyboard
                 end
             end
-            damage_num=sum(pipe_damage_data{1,1}>0);
+            damage_num=k;% k
             pipe_damage_data{1,1}=pipe_damage_data{1,1}(1:damage_num,1);
             pipe_damage_data{1,2}=pipe_damage_data{1,2}(1:damage_num,1);
             pipe_damage_data{1,3}=pipe_damage_data{1,3}(1:damage_num,1);
