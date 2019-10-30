@@ -214,7 +214,7 @@ classdef EMT_add_damage < handle
                     obj.Leak_info(damage_num).Type = obj.NewNode(i).damageType{j};
                 end
             end
-            PipeNameID_keep(deleteIndex)=[];
+            PipeNameID_keep(logical(deleteIndex))=[];
             obj.closePipe(PipeNameID_keep);
         end
     end
