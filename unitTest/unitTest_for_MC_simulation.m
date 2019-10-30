@@ -49,7 +49,7 @@ MC.analysis
 MC.post_analysis
 MC.delete
 % test for analysis of determined damage scenario
-load('DamageScenario.mat')
+load('Scenario.mat')
 MC = MC_simulation(input_rr_file_name,input_net_name);
 MC.pre_damage_analysis
 % MC.random_value

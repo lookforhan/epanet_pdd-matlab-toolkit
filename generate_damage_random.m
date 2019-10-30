@@ -66,7 +66,7 @@ classdef generate_damage_random < handle
             pipe_damage_data{1,4}=zeros(link_num,1); %前后破坏点的长度比例
             pipe_damage_data{1,5}=zeros(link_num,1); %破坏类型，1渗漏，2断开
             pipe_damage_data{1,6}=zeros(link_num,1); %破坏点处渗漏面积，m^2
-            pipe_damage_data{1,7}=zeros(link_num,1); %泄漏破坏类型
+            pipe_damage_data{1,7}=cell(link_num,1); %泄漏破坏类型
             link_D = zeros(link_num,1);% 管道直径mm
             for i=1:link_num
                 judge_interval=[0, Pf_break, Pf(i), 1];
