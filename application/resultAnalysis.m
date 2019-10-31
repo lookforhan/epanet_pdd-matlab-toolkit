@@ -1,3 +1,4 @@
+% analysis of a single chosen scenario
 % analysis of the results
 % start_toolkit() % this commond is necessary for load data
 clear;clc;close all;
@@ -11,8 +12,8 @@ basicNodeFlow = WithPump.Net_basic_information.Node_actualDemand;
 basicNodeFlowSum = sum(basicNodeFlow);
 
 
-chosenDamageScenarioIndex = 5;
-
+chosenDamageScenarioIndex = 6;
+% 756
 damageScenario = DamageScenario{chosenDamageScenarioIndex};
 
 chosenScenario_Reservior_outflow_withPump = WithPump.Reservior_output(:,chosenDamageScenarioIndex);
@@ -54,3 +55,21 @@ theChosenScenario_node_pressure_withOutPump = WithoutPump.Node_supply.Pressure(:
 theChosenScenario_node_mean_pressure_withOutPump = mean(theChosenScenario_node_pressure_withOutPump.Variables);
 theChosenScenario_leak_pressure_withOutPump = WithoutPump.Leak_flow.Pressure(:,chosenDamageScenarioIndex);
 theChosenScenario_leak_mean_pressure_withOutPump = mean(theChosenScenario_leak_pressure_withOutPump.Variables);
+
+
+
+
+node_SI_withPump_mid=chosenScenario_Node_flow_withPump.Variables./WithPump.Net_basic_information.Node_actualDemand';
+node_SI_withPump = node_SI_withPump_mid(1:49);
+
+node_SI_withoutPump = chosenScenario_Node_flow_withOutPump.Variables./WithoutPump.Net_basic_information.Node_actualDemand';
+
+% 频数分布统计
+ph_pump = histogram(node_SI_withPump);
+ph_pump.BinLimits = [0,1.00];
+ph_pump.NumBins = 5;
+ph_pump.Values
+ph_withoutPump = histogram(node_SI_withoutPump);
+ph_withoutPump.BinLimits = [0,1.01];
+ph_withoutPump.NumBins = 5;
+ph_withoutPump.Values
