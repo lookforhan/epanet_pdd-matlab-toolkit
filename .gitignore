@@ -1,3 +1,5 @@
+*.dll
+*.exe
 *.asv
 pre_data_GWSL_4.mat
 *.inp
