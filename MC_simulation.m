@@ -12,6 +12,7 @@ classdef MC_simulation < handle
         Random_value
         MC_Nmax = 1;
         ChosenScenarioIndex = 1;
+        BreakRate = 0.2; % default the break : leak = 1: 4;
     end
     properties % output
         Node_supply
@@ -264,8 +265,8 @@ classdef MC_simulation < handle
         function generate_damage_probability(obj)
             RRdata = obj.RR_data;
             damage_probability = 1-exp(-RRdata.RR.*RRdata.Length_km_);% ¼ÆËãÆÆ»µ¸ÅÂÊ
-            break_probability = 0.2*damage_probability;
-            leak_probability = 0.8*damage_probability;
+            break_probability = obj.BreakRate*damage_probability;
+            leak_probability = (1-obj.BreakRate)*damage_probability;
 %             damage_probability = break_probability+leak_probability;
             obj.PipeProbability.Break = break_probability;
             obj.PipeProbability.Leak = leak_probability;
