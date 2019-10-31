@@ -32,6 +32,7 @@ function start_toolkit()
 
 %------------- BEGIN CODE --------------
 addpath(genpath(pwd));
+disp(pwd)
 disp('EPANET_PDD-MATLAB Toolkit Paths Loaded.');
 path('E:\hanzhao\the_study_of_leak_model_in_epanet',path);
 path('E:\hanzhao\a-comparison-of-2-technologies-that-analyze-resilience\lib\damageNet\',path);
