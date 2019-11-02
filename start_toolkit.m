@@ -6,7 +6,6 @@ function start_toolkit()
 %%
 % 
 %%
-% $x^2+e^{\pi i}$
 % 
 %
 % Inputs:
