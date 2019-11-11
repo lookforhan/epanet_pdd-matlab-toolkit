@@ -48,7 +48,10 @@ classdef EMT_add_damage < handle
         function add_info(obj,pipeID,rateLength,damageType,equalDiameter)
             % check the formates of the input parameters
             obj.init();
-            check_add_info(pipeID,rateLength,damageType,equalDiameter)
+            code = check_add_info(pipeID,rateLength,damageType,equalDiameter);
+            if ~code
+                keyboard
+            end
             obj.PipeNameID = pipeID;
             pipeIndex = obj.Epanet.getLinkIndex(pipeID);
             pipeDiameter = obj.Epanet.getLinkDiameter(pipeIndex); % pipeIndex must be 1*n format;
@@ -311,35 +314,42 @@ classdef EMT_add_damage < handle
         end
     end
 end
-        function check_add_info(pipeID,rateLength,damageType,equalDiameter)
+        function errCode = check_add_info(pipeID,rateLength,damageType,equalDiameter)
             if numel(pipeID)~=numel(rateLength(:,1))
                 whos('pipeID');whos('rateLength')
                 disp('error: the pipeID and rateLength are discordant!')
+                errCode = false;
                 return
             end
             if numel(pipeID)~=numel(damageType(:,1))
                 whos('pipeID');whos('damageType')
                 disp('error: the pipeID and damageType are discordant!')
+                errCode = false;
                 return
             end
             if numel(pipeID)~=numel(equalDiameter(:,1))
                 whos('pipeID');whos('equalDiameter')
                 disp('error: the pipeID and equalDiameter are discordant!')
+                errCode = false;
                 return
             end
             if numel(damageType(1,:))~=numel(equalDiameter(1,:))
                 whos('damageType');whos('equalDiameter')
                 disp('error: the damageType and equalDiameter are discordant!')
+                errCode = false;
                 return
             end
             if ~iscell(pipeID)
                 whos('pipeID');
                 disp('pipeID should be cell')
+                errCode = false;
                 return
             end
             if ~iscell(damageType)
                 whos('damageType');
                 disp('damageType should be cell');
+                errCode = false;
                 return
             end
+            errCode = true;
         end
