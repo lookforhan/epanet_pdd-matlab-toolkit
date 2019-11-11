@@ -91,6 +91,9 @@ classdef MC_simulation < handle
                 mu = 0.62;C = 4427; pipe_damage_num_max = 100;pipe_id = obj.RR_data.PipeID;
                 [~,damage_pipe_info] = ND_Execut_probabilistic4(pipe_id,damage_data,pipe_damage_num_max,C,mu);% from 'damageNet\'
                 damage_information{i,1} = damage_pipe_info;
+                if isempty(damage_pipe_info.Damage_Type)
+                    keyboard
+                end
             end
             obj.Damage_info = damage_information;
         end
