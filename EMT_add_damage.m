@@ -51,6 +51,7 @@ classdef EMT_add_damage < handle
             code = check_add_info(pipeID,rateLength,damageType,equalDiameter);
             if ~code
                 keyboard
+                return
             end
             obj.PipeNameID = pipeID;
             pipeIndex = obj.Epanet.getLinkIndex(pipeID);
@@ -218,7 +219,9 @@ classdef EMT_add_damage < handle
                 end
             end
             PipeNameID_keep(logical(deleteIndex))=[];
+            if ~isempty(PipeNameID_keep)
             obj.closePipe(PipeNameID_keep);
+            end
         end
     end
     properties % properties for adding to net
