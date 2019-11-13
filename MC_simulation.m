@@ -91,7 +91,7 @@ classdef MC_simulation < handle
                 [~,damage_pipe_info] = ND_Execut_probabilistic4(pipe_id,damage_data,pipe_damage_num_max,C,mu);% from 'damageNet\'
                 damage_information{i,1} = damage_pipe_info;
                 if isempty(damage_pipe_info.Damage_Type)
-                    keyboard
+                    disp('No Damage Generation!')
                 end
             end
             obj.Damage_info = damage_information;
@@ -121,10 +121,9 @@ classdef MC_simulation < handle
                 
                 damage_pipe_info = obj.Damage_info{i};% read damage inforamtion
                 if isempty(damage_pipe_info.Damage_Type)
-                    Node_leak_pressure_id = [];
-                    Node_leak_demand_id = [];
-                    Node_leak_pressure_id_cell = [];
-                    Node_leak_demand_id_cell = [];
+                     output_net_pdd_name = obj.Net_pdd_file;
+                    %                 MC_out_inp = [outdir,'\damage',type,num2str(i),'.inp'];
+                    t  = EMT_add_damage(output_net_pdd_name);
                     t.Epanet.setOptionsMaxTrials(200);
                     t.solveH
                     Node_p_index = t.Epanet.getNodeIndex(Node_id);
