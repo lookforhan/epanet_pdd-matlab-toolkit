@@ -1,6 +1,6 @@
 classdef MC_simulation < handle
     % a 'CLASS for Monte Carlo simulation'
-    % In this script, when we use 'the CLASS', 'this CLASS' or other class 
+    % In this script, when we use 'the CLASS', 'this CLASS' or other class
     % without explanation , we all refer to the 'CLASS for Monte Carlo
     % simulation'.
     properties
@@ -43,8 +43,7 @@ classdef MC_simulation < handle
         end
         function delete(obj)
             % close file-built in analysis process
-            % close(obj.Net_pdd_file); % close file created by the CLASS
-
+            % close(obj.Net_pdd_file); % close file created by the CLASS            
             
             if isfile(obj.Net_pdd_file)
                 delete(obj.Net_pdd_file); % delete file created by the CLASS
@@ -70,7 +69,7 @@ classdef MC_simulation < handle
             obj.pre_damage_analysis;
         end
         function generate_damage_info(obj)
-            MC_NUM = obj.MC_Nmax; 
+            MC_NUM = obj.MC_Nmax;
             break_probability = obj.PipeProbability.Break;
             leak_probability = obj.PipeProbability.Leak;
             damage_information = cell(MC_NUM,1);
@@ -120,40 +119,60 @@ classdef MC_simulation < handle
             for i = 1:MC_NUM
                 disp(['MC number:',num2str(i),'/',num2str(MC_NUM)])
                 
-                damage_pipe_info = obj.Damage_info{i};% read damage inforamtion 
+                damage_pipe_info = obj.Damage_info{i};% read damage inforamtion
+                if isempty(damage_pipe_info.Damage_Type)
+                    Node_leak_pressure_id = [];
+                    Node_leak_demand_id = [];
+                    Node_leak_pressure_id_cell = [];
+                    Node_leak_demand_id_cell = [];
+                    t.Epanet.setOptionsMaxTrials(200);
+                    t.solveH
+                    Node_p_index = t.Epanet.getNodeIndex(Node_id);
+                    Node_d_index = t.Epanet.getNodeIndex(Node_R_id);
+                    Node_l_p_index = [];
+                    Node_l_d_index = [];
+                    node_pressure_MC(:,i) = t.Epanet.getNodePressure(Node_p_index)';
+                    node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
+                    node_leak_pressure_MC(1:numel(Node_l_p_index),i) = 0;
+                    node_leak_actualDemand_MC(1:numel(Node_l_d_index),i) = 0;
+                    Reservior_index = t.Epanet.getNodeIndex(OriginalReservoir_id);
+                    Reservior_flow(:,i) = t.Epanet.getNodeActualDemand(Reservior_index)';
+                else
+                    damage_pipe_id = damage_pipe_info.Pipe_ID;
+                    intervalLength = damage_pipe_info.Interval_Length;
+                    equalDiameter = damage_pipe_info.Equal_Damage_Diameter_m_*1000;% Unit:mm
+                    damageType = cell(numel(damage_pipe_info.Damage_Type),1);
+                    damageType(damage_pipe_info.Damage_Type==1) = {'L'};
+                    damageType(damage_pipe_info.Damage_Type==2) = {'B'};
+                    damageType(damage_pipe_info.Damage_Type==0) = {'N'};
+                    %                 outdir = pwd;
+                    %                 type = obj.Random_method;
+                    output_net_pdd_name = obj.Net_pdd_file;
+                    %                 MC_out_inp = [outdir,'\damage',type,num2str(i),'.inp'];
+                    t  = EMT_add_damage(output_net_pdd_name);
+                    t.add_info(damage_pipe_id,intervalLength,damageType,equalDiameter);
+                    t.add2net;%add2net函数不能和closeNetwork函数同时使用
+                    Leak_data_table = struct2table(t.Leak_info);
+                    Node_leak_pressure_id = unique(table2cell(Leak_data_table(:,4:5)))';
+                    Node_leak_demand_id = unique(table2cell(Leak_data_table(:,2:3)))';
+                    Node_leak_pressure_id_cell(1:numel(Node_leak_pressure_id),i) = Node_leak_pressure_id';
+                    Node_leak_demand_id_cell(1:numel(Node_leak_demand_id),i) = Node_leak_demand_id';
+                    %     t.saveInpFile(MC_out_inp)
+                    t.Epanet.setOptionsMaxTrials(200);
+                    t.solveH
+                    Node_p_index = t.Epanet.getNodeIndex(Node_id);
+                    Node_d_index = t.Epanet.getNodeIndex(Node_R_id);
+                    Node_l_p_index = t.Epanet.getNodeIndex(Node_leak_pressure_id);
+                    Node_l_d_index = t.Epanet.getNodeIndex(Node_leak_demand_id);
+                    node_pressure_MC(:,i) = t.Epanet.getNodePressure(Node_p_index)';
+                    node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
+                    node_leak_pressure_MC(1:numel(Node_l_p_index),i) = t.Epanet.getNodePressure(Node_l_p_index)';
+                    node_leak_actualDemand_MC(1:numel(Node_l_d_index),i) = t.Epanet.getNodeActualDemand(Node_l_d_index)';
+                    Reservior_index = t.Epanet.getNodeIndex(OriginalReservoir_id);
+                    Reservior_flow(:,i) = t.Epanet.getNodeActualDemand(Reservior_index)';
+                end
                 
-                damage_pipe_id = damage_pipe_info.Pipe_ID;
-                intervalLength = damage_pipe_info.Interval_Length;
-                equalDiameter = damage_pipe_info.Equal_Damage_Diameter_m_*1000;% Unit:mm
-                damageType = cell(numel(damage_pipe_info.Damage_Type),1);
-                damageType(damage_pipe_info.Damage_Type==1) = {'L'};
-                damageType(damage_pipe_info.Damage_Type==2) = {'B'};
-                damageType(damage_pipe_info.Damage_Type==0) = {'N'};
-%                 outdir = pwd;
-%                 type = obj.Random_method;
-                output_net_pdd_name = obj.Net_pdd_file;
-%                 MC_out_inp = [outdir,'\damage',type,num2str(i),'.inp'];
-                t  = EMT_add_damage(output_net_pdd_name);
-                t.add_info(damage_pipe_id,intervalLength,damageType,equalDiameter);
-                t.add2net;%add2net函数不能和closeNetwork函数同时使用
-                Leak_data_table = struct2table(t.Leak_info);
-                Node_leak_pressure_id = unique(table2cell(Leak_data_table(:,4:5)))';
-                Node_leak_demand_id = unique(table2cell(Leak_data_table(:,2:3)))';
-                Node_leak_pressure_id_cell(1:numel(Node_leak_pressure_id),i) = Node_leak_pressure_id';
-                Node_leak_demand_id_cell(1:numel(Node_leak_demand_id),i) = Node_leak_demand_id';
-                %     t.saveInpFile(MC_out_inp)
-                t.Epanet.setOptionsMaxTrials(200);
-                t.solveH
-                Node_p_index = t.Epanet.getNodeIndex(Node_id);
-                Node_d_index = t.Epanet.getNodeIndex(Node_R_id);
-                Node_l_p_index = t.Epanet.getNodeIndex(Node_leak_pressure_id);
-                Node_l_d_index = t.Epanet.getNodeIndex(Node_leak_demand_id);
-                node_pressure_MC(:,i) = t.Epanet.getNodePressure(Node_p_index)';
-                node_actualDemand_MC(:,i) = t.Epanet.getNodeActualDemand(Node_d_index)';
-                node_leak_pressure_MC(1:numel(Node_l_p_index),i) = t.Epanet.getNodePressure(Node_l_p_index)';
-                node_leak_actualDemand_MC(1:numel(Node_l_d_index),i) = t.Epanet.getNodeActualDemand(Node_l_d_index)';
-                Reservior_index = t.Epanet.getNodeIndex(OriginalReservoir_id);
-                Reservior_flow(:,i) = t.Epanet.getNodeActualDemand(Reservior_index)';
+                
                 % t.preReport(MC_out_rpt);
                 % t.closeNetwork;
                 t.delete
@@ -161,8 +180,8 @@ classdef MC_simulation < handle
             end
             T_demand_MC = array2table(node_actualDemand_MC,'VariableNames',VariableName);
             T_pressure_MC = array2table(node_pressure_MC,'VariableNames',VariableName);
-%             T_demand = [T_demand,T_demand_MC];
-%             T_pressure = [T_pressure,T_pressure_MC];
+            %             T_demand = [T_demand,T_demand_MC];
+            %             T_pressure = [T_pressure,T_pressure_MC];
             obj.Node_supply.Pressure = T_pressure_MC;
             obj.Node_supply.Demand = T_demand_MC;
             obj.Reservior_output = array2table(Reservior_flow,'VariableNames',VariableName);
@@ -270,7 +289,7 @@ classdef MC_simulation < handle
             damage_probability = 1-exp(-RRdata.RR.*RRdata.Length_km_);% 计算破坏概率
             break_probability = obj.BreakRate*damage_probability;
             leak_probability = (1-obj.BreakRate)*damage_probability;
-%             damage_probability = break_probability+leak_probability;
+            %             damage_probability = break_probability+leak_probability;
             obj.PipeProbability.Break = break_probability;
             obj.PipeProbability.Leak = leak_probability;
             obj.PipeProbability.Damage = damage_probability;
@@ -278,20 +297,20 @@ classdef MC_simulation < handle
         function export_inp(obj,filename)
             damage_pipe_info = obj.Damage_info{obj.ChosenScenarioIndex};
             damage_pipe_id = damage_pipe_info.Pipe_ID;
-                intervalLength = damage_pipe_info.Interval_Length;
-                equalDiameter = damage_pipe_info.Equal_Damage_Diameter_m_*1000;% Unit:mm
-                damageType = cell(numel(damage_pipe_info.Damage_Type),1);
-                damageType(damage_pipe_info.Damage_Type==1) = {'L'};
-                damageType(damage_pipe_info.Damage_Type==2) = {'B'};
-                damageType(damage_pipe_info.Damage_Type==0) = {'N'};
-%                 outdir = pwd;
-%                 type = obj.Random_method;
-                output_net_pdd_name = obj.Net_pdd_file;
-%                 MC_out_inp = [outdir,'\damage',type,num2str(i),'.inp'];
-                t  = EMT_add_damage(output_net_pdd_name);
-                t.add_info(damage_pipe_id,intervalLength,damageType,equalDiameter);
-                t.add2net;%add2net函数不能和closeNetwork函数同时使用
-                t.Epanet.saveInputFile(filename)
+            intervalLength = damage_pipe_info.Interval_Length;
+            equalDiameter = damage_pipe_info.Equal_Damage_Diameter_m_*1000;% Unit:mm
+            damageType = cell(numel(damage_pipe_info.Damage_Type),1);
+            damageType(damage_pipe_info.Damage_Type==1) = {'L'};
+            damageType(damage_pipe_info.Damage_Type==2) = {'B'};
+            damageType(damage_pipe_info.Damage_Type==0) = {'N'};
+            %                 outdir = pwd;
+            %                 type = obj.Random_method;
+            output_net_pdd_name = obj.Net_pdd_file;
+            %                 MC_out_inp = [outdir,'\damage',type,num2str(i),'.inp'];
+            t  = EMT_add_damage(output_net_pdd_name);
+            t.add_info(damage_pipe_id,intervalLength,damageType,equalDiameter);
+            t.add2net;%add2net函数不能和closeNetwork函数同时使用
+            t.Epanet.saveInputFile(filename)
         end
         function export_records(obj)
             writetable(obj.Records.Node.Pressure,'NodePressure.xlsx');
