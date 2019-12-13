@@ -380,7 +380,7 @@ classdef epanet <handle
         CMDCODE;                     % Code=1 Hide, Code=0 Show (messages at command window)
     end
     properties (Constant = true)
-        classversion='2.1.8'; % 24/1/2019
+        classversion='2.1.7'; % comment function for net-builder branch
         
         TYPECONTROL={'LOWLEVEL','HIGHLEVEL', 'TIMER', 'TIMEOFDAY'}; % Constants for control: 'LOWLEVEL','HILEVEL', 'TIMER', 'TIMEOFDAY'
         TYPECURVE={'VOLUME','PUMP','EFFICIENCY','HEADLOSS','GENERAL'}; % Constants for pump curves: 'PUMP','EFFICIENCY','VOLUME','HEADLOSS' % EPANET Version 2.2
@@ -2742,10 +2742,6 @@ classdef epanet <handle
             [obj.Errcode] = ENsetpatternvalue(index, patternTimeStep, patternFactor,obj.LibEPANET);
         end
         function setQualityType(obj,varargin)
-            % Sets the type of water quality analysis
-            % Example:
-            %     d.setQualtype (chemname, chemunits, tracenode)
-                 
             qualcode=0;chemname='';chemunits='';tracenode='';
             if find(strcmpi(varargin,'none')==1)
                 [obj.Errcode] = ENsetqualtype(qualcode,chemname,chemunits,tracenode,obj.LibEPANET);
@@ -3744,25 +3740,24 @@ classdef epanet <handle
             % msx.patterns{1} = {''}; %patternID
             % msx.patterns{2} = {''}; %multiplier            
             space=5;
-            f = writenewTemp(msx.msxFileName);
+            f = writenewTemp(msx.msxFile);
             fprintf(f,'[TITLE]\n');
-            if isfield(msx,'title')
-                fprintf(f,msx.title);
+            if isfield(msx,'titleDescription')
+                for i=1:length(msx.titleDescription)
+                    fprintf(f,msx.titleDescription{i});
+                end
             end
 
             fprintf(f,'\n\n[OPTIONS]\n');
             options = {'AREA_UNITS', 'RATE_UNITS', 'SOLVER', 'COUPLING', 'COMPILER',...
                 'TIMESTEP', 'ATOL', 'RTOL'};
             spaces=blanks(space);
-
             if isfield(msx,'options')
                 for i=1:length(msx.options)
-                    if isfield(msx.options,options{i})
-                        fprintf(f,num2str(options{i}));
-                        fprintf(f,spaces);
-                        fprintf(f,num2str(msx.options{i}));
-                        fprintf(f,'\n');
-                    end
+                    fprintf(f,num2str(options{i}));
+                    fprintf(f,spaces);
+                    fprintf(f,num2str(msx.options{i}));
+                    fprintf(f,'\n');
                 end
             end
 
@@ -7094,7 +7089,7 @@ if Errcode
 end
 end
 function ENMatlabCleanup(LibEPANET)
-% Unload library
+% Load library
 if libisloaded(LibEPANET)
     unloadlibrary(LibEPANET);
 else
@@ -9379,9 +9374,7 @@ linkindex12=[linkindex1 linkindex2];
 checklinks_index=unique(linkindex12);
 checklinks=links.BinLinkNameID(checklinks_index);
 obj.removeBinControlNodeID(NodeID);% Remove control, code 0(NODE)
-if ~isempty(obj.getBinRulesControlsInfo)
-    obj.removeBinRulesControlNodeID(NodeID); %Remove Rule
-end
+obj.removeBinRulesControlNodeID(NodeID); %Remove Rule
 [~,info] = obj.readInpFile;
 fid2 = writenewTemp(obj.BinTempfile);
 out=0; sps=blanks(10);
@@ -9594,9 +9587,7 @@ r = strcmp(nodes.BinNodeNameID,to_node);
 if sum(r)==0, to_node=''; end
 % Remove control, code 1(LINK)
 obj.removeBinControlLinkID(LinkID);
-if ~isempty(obj.getBinRulesControlsInfo)
-    obj.removeBinRulesControlLinkID(LinkID); %Remove Rule
-end
+obj.removeBinRulesControlLinkID(LinkID); %Remove Rule
 
 [~,info] = obj.readInpFile;
 fid2 = writenewTemp(obj.BinTempfile);
